@@ -258,6 +258,81 @@
     function freshDossier() {
       return { mode: 'akto', has: {}, sal: [], ak: {}, dates: ['', ''], audit: '', valCom: false, ctrF: false, doc: {}, valForm: false, ctl: false, depot: false, accord: false, fact: 0, paye: false, rem: {} };
     }
+    // ---- Factures émises (AKTO) : vue "factures" du pipeline réel ----
+    A.invoices = function () {
+      var inv = S.db.opcoInv || [], links = S.db.links || {}, clients = S.db.clients || [], dos = S.db.opcoDos || {};
+      var now = new Date(); now.setHours(0, 0, 0, 0);
+      var pd = function (s) { var p = String(s || '').split('-'); return new Date(p[0], p[1] - 1, p[2]); };
+      var paid = function (o) { return /pay|régl|vire|sold/i.test(String(o.etat || '')) || !!o.paye; };
+      var cliName = function (d) { var c = clients.filter(function (x) { return x.id === links[d]; })[0]; return c ? c.nom : null; };
+      var line = function (o) { return [(cliName(o.dossier) || o.dossier) + ' · facture ' + (o.ref || o.num), o.opco + (o.recu ? ' · reçue le ' + String(o.recu).split('-').reverse().join('/') : ''), Math.round(o.ht) + ' €', o]; };
+      var aEmettre = Object.keys(dos).map(function (k) { return dos[k]; }).filter(function (x) { return /accord/i.test(x.etat) && !inv.some(function (o) { return o.dossier === x.num; }); });
+      var encours = inv.filter(function (o) { return !paid(o) && /transmis|analyse/i.test(o.etat); });
+      var retard = inv.filter(function (o) { return !paid(o) && !/rejet|refus/i.test(o.etat) && o.recu && (now - pd(o.recu)) / 864e5 > 45; });
+      var regle = inv.filter(paid);
+      var sum = function (a, f) { return a.reduce(function (s, o) { return s + (f ? f(o) : (+o.ht || 0)); }, 0); };
+      return {
+        kpis: { aEmettre: aEmettre.reduce(function (s, x) { return s + (+x.fac || +x.eng || +x.dem || 0); }, 0), encours: sum(encours), retard: sum(retard), encaisse: sum(regle), nbRegle: regle.length },
+        groups: [
+          { key: 'ae', label: 'À émettre · dossiers accordés sans facture', color: '#A4521F', rows: aEmettre.map(function (x) { return [(cliName(x.num) || x.rs || x.num) + ' · ' + x.num, 'Accordé · ' + (x.titre || 'formation'), Math.round(+x.fac || +x.eng || +x.dem || 0) + ' €', x]; }) },
+          { key: 'enc', label: 'Émises · en cours à l’OPCO', color: '#2F5D9E', rows: encours.map(line) },
+          { key: 'ret', label: 'En retard de paiement (+45 j)', color: '#B42828', rows: retard.map(line) },
+          { key: 'reg', label: 'Réglées', color: '#2F6B3F', rows: regle.slice().sort(function (a, b) { return String(b.paye || '').localeCompare(String(a.paye || '')); }).slice(0, 40).map(line) }
+        ].filter(function (g) { return g.rows.length; })
+      };
+    };
+
+    // ---- Commissions (porté du moteur v112) ----
+    var BAREME = { centre: { tel: .05, com: .10 }, commercial: { tel: 0, com: .15 }, renouvellement: { tel: 0, com: .15 } };
+    var COM_DELAI = 30;
+    function addDays(isoD, n) { var d = new Date(isoD + 'T12:00:00'); d.setDate(d.getDate() + n); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+    function diffD(s) { var p = String(s || '').split('-'); var now = new Date(); now.setHours(0, 0, 0, 0); return Math.round((new Date(p[0], p[1] - 1, p[2]) - now) / 864e5); }
+    function comOf(c) {
+      if (!c || !c.commercial) return null;
+      var p = c.phoneuse || ((c.origine === 'commercial' || c.origine === 'renouvellement') ? c.commercial : null);
+      if (!p) return null;
+      var ori = c.origine === 'renouvellement' ? 'renouvellement' : p === c.commercial ? 'commercial' : 'centre';
+      return { ori: ori, b: BAREME[ori], tel: ori === 'centre' ? p : null, com: c.commercial, p: p };
+    }
+    A.commissions = function (role) {
+      var inv = S.db.opcoInv || [], links = S.db.links || {}, clients = S.db.clients || [], comVal = S.db.comVal || {}, comInv = S.db.comInv || [], comPaid = S.db.comPaid || {};
+      var EM = function (id) { var c = A.EMAP[id]; return c ? A.TEAM[c] : id; };
+      // regroupe les factures par dossier
+      var m = {}; inv.forEach(function (r) { var k = (r.opco || 'AKTO') + '|' + r.dossier; (m[k] = m[k] || { dossier: r.dossier, client: links[r.dossier] || null, inv: [] }).inv.push(r); });
+      var comInvOf = function (key) { return comInv.find(function (i) { return !i.cancel && i.keys && i.keys.indexOf(key) >= 0; }); };
+      var R = [];
+      Object.keys(m).forEach(function (k) {
+        var d = m[k], c = d.client ? clients.filter(function (x) { return x.id === d.client; })[0] : null, K = comOf(c), b = K && K.b;
+        d.inv.filter(function (x) { return x.etat !== 'Rejeté'; }).forEach(function (x) {
+          var opPaid = !!(/pay/i.test(x.etat) && x.paye) || !!x.paye, ech = opPaid ? addDays(x.paye, COM_DELAI) : '', paid = opPaid && diffD(ech) <= 0;
+          var base = { dossier: d.dossier, num: x.num, client: c ? c.nom : 'Dossier non rattaché', cid: c ? c.id : null, ht: +x.ht || 0, ori: K && K.ori, date: opPaid ? x.paye : (x.recu || x.date || ''), paid: paid, opPaid: opPaid, ech: ech };
+          if (!b) { return; }
+          [['tel', K.tel], ['com', K.com]].forEach(function (pair) {
+            var r = pair[0], id = pair[1]; if (!id || !b[r]) return;
+            var key = d.dossier + '|' + x.num + '|' + r, vers = comPaid[key], iv = paid && !vers ? comInvOf(key) : null;
+            var s = !paid ? 'prev' : vers ? 'vers' : iv ? 'fact' : comVal[key] ? 'val' : 'ctl';
+            var g = !paid ? 'prev' : vers ? 'vers' : 'due';
+            R.push(Object.assign({ s: s, g: g, who: id, whoName: EM(id), m: (+x.ht || 0) * b[r], taux: b[r], role: r, key: key, invNum: (iv || {}).num }, base));
+          });
+        });
+      });
+      R.sort(function (a, b) { return String(b.date).localeCompare(String(a.date)); });
+      var isCom = role === 'terrain' || role === 'phoneuse';
+      if (isCom) R = R.filter(function (x) { return x.who === meId; });
+      var sum = function (a) { return a.reduce(function (s, x) { return s + x.m; }, 0); };
+      var yr = (new Date()).getFullYear() + '';
+      return {
+        lines: R,
+        kpis: {
+          due: sum(R.filter(function (x) { return x.g === 'due'; })), nbDue: R.filter(function (x) { return x.g === 'due'; }).length,
+          decompte: sum(R.filter(function (x) { return x.g === 'prev' && x.opPaid; })),
+          attente: sum(R.filter(function (x) { return x.g === 'prev' && !x.opPaid; })),
+          verse: sum(R.filter(function (x) { return x.g === 'vers' && String(x.vers || '').slice(0, 4) === yr; })),
+          aValider: R.filter(function (x) { return x.s === 'ctl'; }).length
+        }
+      };
+    };
+
     // ---- Prospection : fiches à appeler depuis db.deals (leads) ----
     A.calls = function (role) {
       var deals = S.db.deals || [];
