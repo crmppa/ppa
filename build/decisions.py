@@ -19,6 +19,12 @@ def apply(s):
     # le blocage s'applique à tous (plus d'exception silencieuse) ; la direction garde une confirmation explicite
     R("if(curUser().kind==='direction'&&confirm('Dossier incomplet pour '+ENTNAME(sel.value)+'.\\nManque : '+txt+'.\\n\\nPlanifier quand même ?'))return;",
       "if((curUser().kind==='direction'||curUser().kind==='admin')&&confirm('Dossier incomplet pour '+ENTNAME(sel.value)+'.\\nManque : '+txt+'.\\n\\nForcer la planification quand même ?'))return;")
+    # Décision 1 : PPA assujettie à la TVA → TVA 20 % (plus d'exonération)
+    R("${eur(s.prix)} HT \u2014 exonéré de TVA (art. 261-4-4° du CGI)",
+      "${eur(s.prix)} HT \u2014 TVA 20 % en sus (${eur(s.prix*1.2)} TTC)")
+    R("${f.num} d\u2019un montant de ${eur(f.montant)} \u2014 exonérée de TVA (art. 261-4-4° du CGI).",
+      "${f.num} d\u2019un montant de ${eur(f.montant)} HT, soit ${eur(f.montant*1.2)} TTC (TVA 20 %).")
+    R("Formations exonérées de TVA.","Formations soumises à la TVA (20 %).")
     return s,n
 if __name__=='__main__':
     s,n=apply(open(sys.argv[1],encoding='utf-8').read());open(sys.argv[2],'w',encoding='utf-8').write(s);print('décisions',n)
