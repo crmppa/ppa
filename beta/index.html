@@ -56,12 +56,12 @@ async function enter(){
  try{if(db.v===4&&db.sessions)localStorage.setItem('ppa-pilot-v4',JSON.stringify(db));else localStorage.removeItem('ppa-pilot-v4');
   localStorage.setItem('ppa-ui-who',JSON.stringify(me.id));localStorage.setItem('ppa-ui-whoK',JSON.stringify(null))}catch(e){}
  prog(65,'Chargement de l’application…');
- const {data:v,error:e1}=await S.sb.from('app_files').select('version').eq('name','app').maybeSingle();
+ const {data:v,error:e1}=await S.sb.from('app_meta').select('v').eq('k','app_version').maybeSingle();
  if(e1||!v)throw new Error('Application indisponible pour le moment.');
  let code=null,cache=null;
- try{cache=await caches.open('ppa-app');const r=await cache.match('app-'+v.version);if(r)code=await r.text()}catch(e){}
- if(!code){const {data,error}=await S.sb.from('app_files').select('content').eq('name','app').single();if(error)throw error;code=data.content;
-  try{if(cache){(await cache.keys()).forEach(k=>cache.delete(k));await cache.put('app-'+v.version,new Response(code))}}catch(e){}}
+ try{cache=await caches.open('ppa-app');const r=await cache.match('app-'+v.v);if(r)code=await r.text()}catch(e){}
+ if(!code){const {data,error}=await S.sb.storage.from('app').download('app.html');if(error)throw error;code=await data.text();
+  try{if(cache){for(const k of await cache.keys())await cache.delete(k);await cache.put('app-'+v.v,new Response(code))}}catch(e){}}
  prog(100,'Ouverture…');
  document.open();document.write(code);document.close();
 }
