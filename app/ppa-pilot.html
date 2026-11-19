@@ -208,7 +208,11 @@ details.tbl .t td,details.tbl .t th{padding:6px 10px}
  .demo{display:none}
 }
 @media (max-width:520px){#create{font-size:0;gap:0;padding:9px}#create svg{width:18px;height:18px}.search kbd{display:none}.top{gap:8px}.view{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}.top{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}.vh h1{font-size:21px}
- .side{justify-content:space-around;gap:0}.nav{flex-direction:column;gap:3px;padding:6px 7px;width:auto;flex:1;min-width:0;align-items:center}.nav span{display:none}.nav svg{width:22px;height:22px}.nav .cnt{position:absolute;margin-top:-6px;margin-left:14px}.flow,.ngroup{flex:1;justify-content:space-around}}
+ .side{justify-content:space-around;gap:0;align-items:center}
+ .side>.flow,.side>.ngroup,.side>.flow>.fstep{display:contents}
+ .side>.navgrp{display:none}
+ .nav{flex-direction:column;gap:0;padding:8px 7px;width:auto;min-width:0;align-items:center;justify-content:center;height:40px}
+ .nav span{display:none}.nav svg{width:22px;height:22px;display:block}.nav .cnt{position:absolute;margin-top:-6px;margin-left:14px}}
 
 /* ===== Menu latéral clair ===== */
 .ngroup{display:flex;flex-direction:column;gap:2px;padding:6px 0}
