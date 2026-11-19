@@ -519,12 +519,14 @@ const stPill=s=>`<span class="pill ${ST[s][2]}">${ST[s][1]}</span>`;
 
 /* ===== Aujourd'hui ===== */
 V.aujourdhui=()=>{
- const tasks=role==='terrain'?[['c1','Contre-appel à faire · Tacos Factory','RDV le 19/11/2026 à 14:00 · 07 31 45 27 90',7,'p-warn','Attention'],['c2','RDV passé · résultat à saisir · Boucherie des Halles','Signé, en réflexion ou refusé : à indiquer',2,'p-bad','Urgent'],['c3','Dossier à compléter · Snack Le Beffroi','Manque : CNI du gérant, date de l’audit offert',1,'p-warn','Attention'],['c4','Renouvellement à relancer · Boulangerie Saint-Pierre','Signée il y a 11 mois · commission 15 %',6,'p-bad','Urgent']]
+ const TD=(window.PPA_ADAPT&&PPA_ADAPT.real&&PPA_ADAPT.today)?PPA_ADAPT.today(role):null;
+ const tasks=TD?TD.tasks:role==='terrain'?[['c1','Contre-appel à faire · Tacos Factory','RDV le 19/11/2026 à 14:00 · 07 31 45 27 90',7,'p-warn','Attention'],['c2','RDV passé · résultat à saisir · Boucherie des Halles','Signé, en réflexion ou refusé : à indiquer',2,'p-bad','Urgent'],['c3','Dossier à compléter · Snack Le Beffroi','Manque : CNI du gérant, date de l’audit offert',1,'p-warn','Attention'],['c4','Renouvellement à relancer · Boulangerie Saint-Pierre','Signée il y a 11 mois · commission 15 %',6,'p-bad','Urgent']]
   :role==='phoneuse'?[['p1','Rappeler · Snack O’Délices','Relance prévue le 19/11/2026',0,'p-warn','Attention'],['p2','Fiches à appeler','3 fiches jamais contactées · liste Veille 11/10',0,'p-info','Aujourd’hui']]
   :[['t1','Déposer la demande de prise en charge AKTO','Snack Le Beffroi · PMS · début le 08/12/2026',1,'p-bad','Urgent'],['t2','AKTO attend les pièces de règlement — facture 026','Dossier 2607AF006164 · 1 750 € · déposée le 30/07/2026',0,'p-bad','Urgent'],['t3','Session terminée non facturée','Capsule Corp · PMS · terminée le 22/09/2026 · 2 400 €',0,'p-bad','Urgent'],['t4','Facture F-2026-061 impayée depuis 28 j','AKTO · 1 400 € · relance niveau 2',0,'p-warn','Attention'],['t5','AKTO sans réponse depuis 27 jours','Youfood · dossier 2610AF041033',0,'p-warn','Attention'],['t6','Envoyer les convocations','Chicken Express · 3 stagiaires · HACCP le 18/11/2026',12,'p-warn','Attention']];
  const up='<svg viewBox="0 0 24 24"><path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 16v4h16v-4"/></svg>';
  const o=ui.impOpco,c=ui.impCalls;
- $v().innerHTML=head('Bonjour '+ROLES[role].nom.split(' ')[0],'Jeudi 19 novembre · 5 tâches, 3 rendez-vous')+
+ const capD=s=>s?s.charAt(0).toUpperCase()+s.slice(1):s;
+ $v().innerHTML=head('Bonjour '+ROLES[role].nom.split(' ')[0],TD?(capD(TD.dateLabel)+' · '+tasks.length+' tâche'+(tasks.length>1?'s':'')+', '+TD.rdvJour.length+' rendez-vous'):'Jeudi 19 novembre · 5 tâches, 3 rendez-vous')+
  `<div class="start" aria-label="Pour bien démarrer la journée">
   <section class="step first ${o&&o.files.length>=3?'ok':''}"><span class="no">${o&&o.files.length>=3?ic('check','width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"'):'1'}</span><div class="grow">
    <h3>Mettre à jour AKTO</h3>
@@ -546,21 +548,21 @@ V.aujourdhui=()=>{
  </div>
  <input type="file" id="fOpco" accept=".xlsx,.xls,.csv" multiple hidden><input type="file" id="fCalls" accept=".pdf,.xlsx,.xls,.csv" multiple hidden>
  <div class="kpis">
-  <div class="kpi"><small>À encaisser</small><b>${eur(18640)}</b><div class="d" style="color:var(--bad)">dont ${eur(6220)} en retard</div></div>
-  <div class="kpi"><small>Signé ce mois</small><b>${eur(9860)}</b><div class="d" style="color:var(--good)">+18 % vs octobre</div></div>
-  <div class="kpi"><small>RDV cette semaine</small><b>7</b><div class="d" style="color:var(--ink2)">4 Mehdi · 3 Rachid</div></div>
-  <div class="kpi"><small>Stagiaires en salle</small><b>6</b><div class="d" style="color:var(--ink2)">2 sessions en cours</div></div>
+  <div class="kpi"><small>À encaisser</small><b>${eur(TD?TD.kpis.aEncaisser:18640)}</b><div class="d" style="color:var(--bad)">dont ${eur(TD?TD.kpis.retard:6220)} en retard</div></div>
+  <div class="kpi"><small>Signé ce mois</small><b>${eur(TD?TD.kpis.signeMois:9860)}</b><div class="d" style="color:var(--ink2)">${TD?'dossiers AKTO démarrés':'+18 % vs octobre'}</div></div>
+  <div class="kpi"><small>RDV cette semaine</small><b>${TD?TD.kpis.rdvSemaine:7}</b><div class="d" style="color:var(--ink2)">${TD?'rendez-vous et audits':'4 Mehdi · 3 Rachid'}</div></div>
+  <div class="kpi"><small>${TD?'Audits à venir (30 j)':'Stagiaires en salle'}</small><b>${TD?TD.kpis.auditsAVenir:6}</b><div class="d" style="color:var(--ink2)">${TD?'suivi et surveillance':'2 sessions en cours'}</div></div>
  </div>
  <div class="grid2">
   <section class="panel"><div class="ph">À faire<span class="sp"></span><small>Triées par urgence</small></div><ul class="list">${tasks.map(([k,t,s,e,c,l])=>`<li class="${ui.done[k]?'done':''}"><button class="chk" data-done="${k}" aria-pressed="${!!ui.done[k]}" aria-label="Marquer comme fait"></button><div class="grow"><b>${esc(t)}</b><small>${esc(s)}</small></div><span class="pill ${c}">${l}</span>${e?`<button class="btn sm" data-open="${e}">Ouvrir</button>`:''}</li>`).join('')}</ul></section>
-  <section class="panel"><div class="ph">Rendez-vous du jour</div><ul class="list">
+  <section class="panel"><div class="ph">Rendez-vous du jour</div><ul class="list">${TD?(TD.rdvJour.length?TD.rdvJour.map(r=>`<li><span class="time">${esc(r.heure)}</span><div class="grow"><b>${esc(r.titre)}</b><small>${esc(r.sub)}</small></div></li>`).join(''):'<li><div class="grow"><small>Aucun rendez-vous aujourd’hui</small></div></li>'):`
    <li><span class="time">09:30</span><div class="grow"><b>Session HACCP · jour 2</b><small>Chicken Express · salle Rachid · 3 stagiaires</small></div></li>
    <li><span class="time">14:00</span><div class="grow"><b>RDV signature · Tacos Factory</b><small>Denain · Mehdi</small></div></li>
-   <li><span class="time">16:30</span><div class="grow"><b>Appel gérant · Boucherie des Halles</b><small>Préparation du RDV de demain · Mehdi</small></div></li>
+   <li><span class="time">16:30</span><div class="grow"><b>Appel gérant · Boucherie des Halles</b><small>Préparation du RDV de demain · Mehdi</small></div></li>`}
   </ul>
-  <div class="ph" style="padding-top:6px">Alertes</div><ul class="list">
+  <div class="ph" style="padding-top:6px">Alertes</div><ul class="list">${TD?(TD.alertes.length?TD.alertes.map(a=>`<li><span class="pill ${a.pill}">${esc(a.label)}</span><div class="grow"><b>${esc(a.title)}</b><small>${esc(a.sub)}</small></div>${a.go?`<button class="btn sm" data-go="${a.go}">Voir</button>`:''}</li>`).join(''):'<li><div class="grow"><small>Aucune alerte</small></div></li>'):`
    <li><span class="pill p-bad">Retard</span><div class="grow"><b>3 factures OPCO non payées depuis plus de 45 jours</b><small>${eur(6220)} au total</small></div><button class="btn sm" data-go="finances">Voir</button></li>
-   <li><span class="pill p-warn">Qualiopi</span><div class="grow"><b>2 questionnaires à 3 mois à envoyer</b><small>Indicateur 30</small></div></li>
+   <li><span class="pill p-warn">Qualiopi</span><div class="grow"><b>2 questionnaires à 3 mois à envoyer</b><small>Indicateur 30</small></div></li>`}
   </ul></section>
  </div>`;
  $v().querySelectorAll('[data-done]').forEach(b=>b.onclick=()=>{ui.done[b.dataset.done]=!ui.done[b.dataset.done];V.aujourdhui()});

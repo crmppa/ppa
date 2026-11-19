@@ -258,6 +258,67 @@
     function freshDossier() {
       return { mode: 'akto', has: {}, sal: [], ak: {}, dates: ['', ''], audit: '', valCom: false, ctrF: false, doc: {}, valForm: false, ctl: false, depot: false, accord: false, fact: 0, paye: false, rem: {} };
     }
+    // ---- Accueil « Aujourd'hui » : tâches, RDV et chiffres du jour (réel) ----
+    A.today = function (role) {
+      var db = S.db, inv = db.opcoInv || [], dos = db.opcoDos || {}, links = db.links || {}, clients = db.clients || [], rdv = db.rdv || [], audits = db.audits || [], reclam = db.reclam || [], imports = db.imports || [], dossiers = db.dossiers || {};
+      var now = new Date(); now.setHours(0, 0, 0, 0);
+      var pd = function (s) { var p = String(s || '').split('-'); return new Date(p[0], p[1] - 1, p[2]); };
+      var days = function (s) { return s ? Math.round((pd(s) - now) / 864e5) : null; };
+      var paid = function (o) { return /pay|régl|vire|sold/i.test(String(o.etat || '')) || !!o.paye; };
+      var cliName = function (id) { var c = clients.filter(function (x) { return x.id === id; })[0]; return c ? c.nom : null; };
+      var isCom = role === 'terrain' || role === 'phoneuse', isMgr = role === 'direction' || role === 'admin';
+      var tasks = [];
+      // 1. import hebdo AKTO
+      var monday = new Date(now); monday.setDate(monday.getDate() - ((monday.getDay() + 6) % 7));
+      var lastImp = imports.filter(function (i) { return i.valide; }).sort(function (a, b) { return String(b.date).localeCompare(String(a.date)); })[0];
+      if (isMgr && (!lastImp || pd(lastImp.date) < monday)) tasks.push(['imp', 'Importer les exports AKTO de la semaine', lastImp ? 'Dernier import le ' + pd(lastImp.date).toLocaleDateString('fr-FR') : 'Aucun import enregistré', '', 'p-bad', 'Urgent']);
+      // 2. dossiers AKTO à rattacher
+      if (isMgr) { var aLier = Object.keys(dos).map(function (k) { return dos[k]; }).filter(function (x) { return x.m && x.m.st !== 'ok' && !/clotur|refus|annul/i.test(x.etat || ''); }); if (aLier.length) tasks.push(['lk', aLier.length + ' dossiers AKTO à rattacher à une entreprise', 'SIRET inconnu ou à confirmer', '', 'p-warn', 'Attention']); }
+      // 3. factures attente pièces
+      if (isMgr) inv.filter(function (o) { return /pièces|pieces/i.test(o.etat) && !paid(o); }).slice(0, 5).forEach(function (o) { tasks.push(['pc' + o.num, 'AKTO attend les pièces de règlement — facture ' + (o.ref || o.num), (cliName(links[o.dossier]) || o.dossier) + ' · ' + Math.round(o.ht) + ' €', links[o.dossier] || '', 'p-bad', 'Urgent']); });
+      // 4. factures rejetées non régularisées
+      if (isMgr) inv.filter(function (o) { return /rejet|refus/i.test(o.etat) && !inv.some(function (q) { return q.dossier === o.dossier && paid(q); }); }).slice(0, 5).forEach(function (o) { tasks.push(['rj' + o.num, 'Facture ' + (o.ref || o.num) + ' rejetée par l’AKTO', (cliName(links[o.dossier]) || o.dossier) + ' · ' + Math.round(o.ht) + ' € · à corriger', links[o.dossier] || '', 'p-warn', 'Attention']); });
+      // 5. factures en retard de paiement (+45j)
+      if (isMgr) inv.filter(function (o) { return !paid(o) && !/rejet|refus|annul/i.test(o.etat || '') && o.recu && days(o.recu) < -45; }).slice(0, 5).forEach(function (o) { tasks.push(['rt' + o.num, 'Facture ' + (o.ref || o.num) + ' sans paiement depuis ' + (-days(o.recu)) + ' j', (cliName(links[o.dossier]) || o.dossier) + ' · ' + Math.round(o.ht) + ' €', links[o.dossier] || '', 'p-warn', 'Attention']); });
+      // 6. audits à venir / en retard
+      audits.filter(function (a) { return !a.done && days(a.date) <= 21 && (!isCom || a.owner === meId); }).sort(function (a, b) { return String(a.date).localeCompare(String(b.date)); }).slice(0, 6).forEach(function (a) { var n = days(a.date); tasks.push(['au' + a.id, (n < 0 ? 'Audit en retard · ' : 'Audit à préparer · ') + (cliName(a.ent) || a.ent), pd(a.date).toLocaleDateString('fr-FR') + ' · ' + (a.type || 'suivi'), a.ent, n < 0 ? 'p-bad' : n <= 7 ? 'p-warn' : 'p-info', n < 0 ? 'Urgent' : n <= 7 ? 'Attention' : 'À venir']); });
+      // 7. réclamations ouvertes
+      if (isMgr) reclam.filter(function (r) { return r.statut === 'Ouverte' || (r.statut && r.statut !== 'Traitée'); }).slice(0, 4).forEach(function (r) { tasks.push(['rc' + r.id, 'Réclamation à traiter', (cliName(r.client) || '') + ' · ' + (r.objet || '') + ' · réponse sous 15 j', r.client || '', days(r.date) <= -10 ? 'p-bad' : 'p-warn', days(r.date) <= -10 ? 'Urgent' : 'Attention']); });
+      // 8. clients sans contact depuis 60 j (commercial : les siens)
+      clients.filter(function (c) { return c.last && days(c.last) <= -60 && (!isCom || c.commercial === meId || c.phoneuse === meId); }).sort(function (a, b) { return String(a.last).localeCompare(String(b.last)); }).slice(0, isCom ? 8 : 4).forEach(function (c) { tasks.push(['cr' + c.id, 'Rappeler ' + c.nom, 'Aucun contact depuis ' + (-days(c.last)) + ' j', c.id, 'p-info', 'Relance']); });
+      // ordre : urgent puis attention puis info
+      var rank = { 'p-bad': 0, 'p-warn': 1, 'p-info': 2 };
+      var rk = function (k) { return rank[k] == null ? 3 : rank[k]; };
+      tasks.sort(function (a, b) { return rk(a[4]) - rk(b[4]); });
+
+      // RDV du jour
+      var today = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
+      var rdvJour = rdv.filter(function (r) { return r.date === today && (!isCom || r.owner === meId); }).sort(function (a, b) { return String(a.heure || '').localeCompare(String(b.heure || '')); }).map(function (r) { return { heure: r.heure || '—', titre: r.titre || 'Rendez-vous', sub: [cliName(r.ent) || r.lieu, EMAPname(r.owner)].filter(Boolean).join(' · ') }; });
+
+      // KPIs
+      var f = A.fin();
+      var mkk = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+      var signeMois = Object.keys(dos).map(function (k) { return dos[k]; }).filter(function (x) { return String(x.debut || '').slice(0, 7) === mkk; }).reduce(function (s, x) { return s + (+x.dem || +x.eng || 0); }, 0);
+      var sunday = new Date(monday); sunday.setDate(sunday.getDate() + 6);
+      var rdvSem = rdv.filter(function (r) { var d = pd(r.date); return d >= monday && d <= sunday; }).length;
+      var auditsAV = audits.filter(function (a) { return !a.done && days(a.date) >= 0 && days(a.date) <= 30; }).length;
+      function EMAPname(eid) { var c = A.EMAP[eid]; return c ? A.TEAM[c] : ''; }
+
+      return {
+        tasks: tasks, rdvJour: rdvJour,
+        dateLabel: now.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' }),
+        kpis: { aEncaisser: f.kpis.aEncaisser + f.kpis.bloque, retard: (function () { return inv.filter(function (o) { return !paid(o) && o.recu && days(o.recu) < -45 && !/rejet|refus|annul/i.test(o.etat || ''); }).reduce(function (s, o) { return s + (+o.ht || 0); }, 0); })(), signeMois: signeMois, rdvSemaine: rdvSem, auditsAVenir: auditsAV },
+        alertes: (function () {
+          var al = [];
+          var ret = inv.filter(function (o) { return !paid(o) && o.recu && days(o.recu) < -45 && !/rejet|refus|annul/i.test(o.etat || ''); });
+          if (ret.length) al.push({ pill: 'p-bad', label: 'Retard', title: ret.length + ' factures AKTO non payées depuis plus de 45 jours', sub: Math.round(ret.reduce(function (s, o) { return s + (+o.ht || 0); }, 0)) + ' € au total', go: 'finances' });
+          var ab = Object.keys(dos).map(function (k) { return dos[k]; }).filter(function (x) { return x.m && x.m.st === 'absent' && !/clotur|refus/i.test(x.etat || ''); });
+          if (ab.length) al.push({ pill: 'p-warn', label: 'AKTO', title: ab.length + ' dossiers AKTO sans entreprise au CRM', sub: 'À rattacher ou ignorer', go: 'finances' });
+          return al;
+        })()
+      };
+    };
+
     // ---- Pilotage : performance & trésorerie à partir des données réelles ----
     A.perf = function () {
       var inv = S.db.opcoInv || [], dos = S.db.opcoDos || {}, links = S.db.links || {}, clients = S.db.clients || [], rdv = S.db.rdv || [], deals = S.db.deals || [];
@@ -297,7 +358,7 @@
       // entonnoir : RDV pris -> signatures
       var nbRdv = rdv.length;
       var nbSign = clients.filter(function (c) { return c.signe || String(c.statut || '') === 'Soldé'; }).length + deals.filter(function (d) { return /gagn|sign/i.test(d.etape || ''); }).length;
-      var retard = inv.filter(function (o) { return !paid(o) && o.recu && (now - pd(o.recu)) / 864e5 > 45; }).reduce(function (a, o) { return a + (+o.ht || 0); }, 0);
+      var retard = inv.filter(function (o) { return !paid(o) && !/rejet|refus|annul/i.test(String(o.etat || '')) && o.recu && (now - pd(o.recu)) / 864e5 > 45; }).reduce(function (a, o) { return a + (+o.ht || 0); }, 0);
       return {
         M: M.map(function (m) { return m.l; }), SIG: SIG, FAC: FAC, ENC: ENC, SEM: SEM, TRESO: TRESO, DELAI: DELAI,
         resteFin: resteR, caForm: caFormR, delaiMoy: delaiMoy, totReste: sum(Object.keys(reste).map(function (k) { return reste[k]; })),
