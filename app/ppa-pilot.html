@@ -992,14 +992,17 @@ function hBars(box,rows,color,fmt,opts={}){
 const tableHTML=(cols,rows)=>`<details class="tbl"><summary>Voir les chiffres en tableau</summary><div class="tw"><table class="t"><thead><tr>${cols.map((c,i)=>`<th class="${i?'num':''}">${c}</th>`).join('')}</tr></thead><tbody>${rows.map(r=>`<tr>${r.map((c,i)=>`<td class="${i?'num':''}">${c}</td>`).join('')}</tr>`).join('')}</tbody></table></div></details>`;
 
 /* ===== Rapports ===== */
-const MOIS=['déc.','janv.','févr.','mars','avr.','mai','juin','juil.','août','sept.','oct.','nov.'];
-const SIG=[6200,7400,8100,9800,7600,11200,10400,5200,4100,12600,8350,9860],FAC=[5400,6100,7300,8200,8900,7800,10600,9100,4300,6900,11800,8400],ENC=[3900,5200,5600,6900,7400,8100,6200,9800,7100,3600,7200,9300];
-const DELAI=[58,61,55,63,60,52,49,57,66,62,54,51];
-const SEM=['20 nov.','27 nov.','4 déc.','11 déc.','18 déc.','25 déc.','1 janv.','8 janv.','15 janv.','22 janv.','29 janv.','5 févr.','12 févr.','19 févr.'];
-const TRESO=[18400,16900,19600,17800,21300,20100,15900,14200,17600,22400,20800,18900,23600,25100];
+let MOIS=['déc.','janv.','févr.','mars','avr.','mai','juin','juil.','août','sept.','oct.','nov.'];
+let SIG=[6200,7400,8100,9800,7600,11200,10400,5200,4100,12600,8350,9860],FAC=[5400,6100,7300,8200,8900,7800,10600,9100,4300,6900,11800,8400],ENC=[3900,5200,5600,6900,7400,8100,6200,9800,7100,3600,7200,9300];
+let DELAI=[58,61,55,63,60,52,49,57,66,62,54,51];
+let SEM=['20 nov.','27 nov.','4 déc.','11 déc.','18 déc.','25 déc.','1 janv.','8 janv.','15 janv.','22 janv.','29 janv.','5 févr.','12 févr.','19 févr.'];
+let TRESO=[18400,16900,19600,17800,21300,20100,15900,14200,17600,22400,20800,18900,23600,25100];
 V.rapports=()=>{
  const T=[['treso','Performance & trésorerie'],['com','Ventes'],['app','Prospection'],['form','Formations'],['qual','Qualiopi']];
  const sumY=a=>a.reduce((x,y)=>x+y,0);
+ const P=(window.PPA_ADAPT&&PPA_ADAPT.real&&PPA_ADAPT.perf)?PPA_ADAPT.perf():null;
+ if(P){MOIS=P.M;SIG=P.SIG;FAC=P.FAC;ENC=P.ENC;SEM=P.SEM;TRESO=P.TRESO;DELAI=P.DELAI;}
+ const trTxt=v=>v>=1000?(Math.round(v/100)/10).toLocaleString('fr-FR')+' k€':Math.round(v)+' €';
  $v().innerHTML=head('Pilotage','Chiffres, trésorerie et Qualiopi','<select class="btn" aria-label="Période"><option>12 derniers mois</option><option>Année 2026</option><option>Ce trimestre</option></select>')+
  `<div class="tabs" role="tablist" style="background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:0 6px">${T.map(([k,l])=>`<button class="tab" role="tab" aria-selected="${ui.repTab===k}" data-rp="${k}">${l}</button>`).join('')}</div>`+
  (ui.repTab==='qual'?`<div class="rgrid"><section class="panel"><div class="ph">Prochain audit<span class="sp"></span><small>Préparation 43 %</small></div><div style="padding:0 16px 14px"><b style="font:600 28px var(--f-head);color:var(--accent)">J-148</b><div>Audit de surveillance Qualiopi · 16/04/2027</div></div>
@@ -1009,32 +1012,32 @@ V.rapports=()=>{
  <section class="panel"><div class="ph">Échéances réglementaires</div><div class="tw"><table class="t"><thead><tr><th>Obligation</th><th>Date</th><th>Délai</th><th></th></tr></thead><tbody>${[['Bilan pédagogique et financier (BPF)','31/05/2027','dans 193 j','p-mut'],['Audit de surveillance Qualiopi','16/04/2027','dans 148 j','p-mut'],['Renouvellement certification Qualiopi','15/03/2028','dans 482 j','p-mut']].map(r=>`<tr><td class="name">${r[0]}</td><td>${r[1]}</td><td><span class="pill ${r[3]}">${r[2]}</span></td><td class="num"><button class="btn sm">Fait</button></td></tr>`).join('')}</tbody></table></div>
  <div class="ph">Réclamations<span class="sp"></span><button class="btn sm">Nouvelle réclamation</button></div><ul class="plist"><li><div class="grow"><b>Retard de convocation</b><small>Tacos Factory · 04/11/2026 · réponse sous 15 jours (indicateur 31)</small></div><button class="btn sm primary">Clôturer</button></li></ul></section></div>`:ui.repTab!=='treso'?`<section class="panel"><div class="empty"><b>${T.find(t=>t[0]===ui.repTab)[1]}</b>Ce rapport reprendra les chiffres des anciens onglets « Performance ». La maquette détaille l’onglet Performance &amp; trésorerie.</div></section>`:
  `<div class="kpis">
-  <div class="kpi"><small>Encaissé sur 12 mois</small><b>${eur(sumY(ENC))}</b><div class="d" style="color:var(--good)">+22 % vs 12 mois précédents</div></div>
-  <div class="kpi"><small>Reste à encaisser</small><b>${eur(18640)}</b><div class="d" style="color:var(--bad)">${eur(6220)} en retard de plus de 45 j</div></div>
-  <div class="kpi"><small>Trésorerie prévue au 19 févr.</small><b>${eur(TRESO[TRESO.length-1])}</b><div class="d" style="color:var(--ink2)">point bas ${eur(Math.min(...TRESO))} le 8 janv.</div></div>
-  <div class="kpi"><small>Délai moyen de paiement AKTO</small><b>51 j</b><div class="d" style="color:var(--good)">−3 j vs octobre</div></div>
-  <div class="kpi"><small>RDV transformés en signature</small><b>41 %</b><div class="d" style="color:var(--ink2)">38 signatures sur 93 RDV</div></div>
+  <div class="kpi"><small>Encaissé sur 12 mois</small><b>${eur(sumY(ENC))}</b><div class="d" style="color:var(--ink2)">${P?'factures AKTO payées':'+22 % vs 12 mois précédents'}</div></div>
+  <div class="kpi"><small>Reste à encaisser</small><b>${eur(P?P.totReste:18640)}</b><div class="d" style="color:var(--bad)">${eur(P?P.retard:6220)} en retard de plus de 45 j</div></div>
+  <div class="kpi"><small>${P?'Encaissements attendus (13 sem.)':'Trésorerie prévue au 19 févr.'}</small><b>${eur(TRESO[TRESO.length-1]||0)}</b><div class="d" style="color:var(--ink2)">${P?'cumul des paiements OPCO à venir':'point bas '+eur(Math.min(...TRESO))+' le 8 janv.'}</div></div>
+  <div class="kpi"><small>Délai moyen de paiement AKTO</small><b>${P?(P.delaiMoy+' j'):'51 j'}</b><div class="d" style="color:var(--ink2)">${P?'facture → paiement':'−3 j vs octobre'}</div></div>
+  <div class="kpi"><small>RDV transformés en signature</small><b>${P?(P.nbRdv?Math.round(P.nbSign/P.nbRdv*100):0)+' %':'41 %'}</b><div class="d" style="color:var(--ink2)">${P?(P.nbSign+' signatures · '+P.nbRdv+' RDV/audits'):'38 signatures sur 93 RDV'}</div></div>
  </div>
  <div class="rgrid">
   <section class="panel wide"><div class="ph">Chiffre d’affaires par mois<span class="sp"></span><small>Signé, facturé, encaissé</small></div>
    <div class="legend"><span><i style="background:var(--s1)"></i>Signé</span><span><i style="background:var(--s2)"></i>Facturé</span><span><i style="background:var(--s3)"></i>Encaissé</span></div>
    <div class="chart" id="cCA"></div>${tableHTML(['Mois','Signé','Facturé','Encaissé'],MOIS.map((m,i)=>[m,eur(SIG[i]),eur(FAC[i]),eur(ENC[i])]))}</section>
-  <section class="panel wide"><div class="ph">Trésorerie prévue sur 13 semaines<span class="sp"></span><small>Solde du compte, semaine par semaine</small></div>
-   <div class="chart" id="cTR"></div><p class="note">Calcul : solde actuel + paiements OPCO attendus à leur date habituelle − commissions à payer − charges fixes. Le trait rouge marque le seuil d’alerte de 15 000 €.</p>${tableHTML(['Semaine du','Solde prévu'],SEM.map((s,i)=>[s,eur(TRESO[i])]))}</section>
-  <section class="panel"><div class="ph">Reste à encaisser par financeur</div><div class="chart" id="cOP"></div>${tableHTML(['Financeur','Montant'],[['AKTO',eur(12880)],['OPCO EP',eur(3360)],['Clients directs',eur(1700)],['OPCO Commerce',eur(700)]])}</section>
+  <section class="panel wide"><div class="ph">${P?'Encaissements OPCO attendus · 13 semaines':'Trésorerie prévue sur 13 semaines'}<span class="sp"></span><small>${P?'cumul des paiements à venir':'Solde du compte, semaine par semaine'}</small></div>
+   <div class="chart" id="cTR"></div><p class="note">${P?'Chaque facture AKTO non encore payée est placée à sa date de paiement probable (facture + délai moyen constaté). La courbe cumule ces encaissements attendus. Ajoutez votre solde de compte et vos charges fixes pour une vraie trésorerie.':'Calcul : solde actuel + paiements OPCO attendus à leur date habituelle − commissions à payer − charges fixes. Le trait rouge marque le seuil d’alerte de 15 000 €.'}</p>${tableHTML(['Semaine du',P?'Cumul attendu':'Solde prévu'],SEM.map((s,i)=>[s,eur(TRESO[i])]))}</section>
+  <section class="panel"><div class="ph">Reste à encaisser par financeur</div><div class="chart" id="cOP"></div>${tableHTML(['Financeur','Montant'],(P?P.resteFin:[['AKTO',12880],['OPCO EP',3360],['Clients directs',1700],['OPCO Commerce',700]]).map(r=>[r[0],eur(r[1])]))}</section>
   <section class="panel"><div class="ph">Délai de paiement AKTO<span class="sp"></span><small>Jours entre facture et paiement</small></div><div class="chart" id="cDL"></div>${tableHTML(['Mois','Délai moyen'],MOIS.map((m,i)=>[m,DELAI[i]+' j']))}</section>
-  <section class="panel"><div class="ph">Des appels à la signature<span class="sp"></span><small>12 derniers mois</small></div><div class="chart" id="cFN"></div>${tableHTML(['Étape','Nombre'],[['Appels passés','1 284'],['Gérants intéressés','212'],['RDV pris','93'],['Signatures','38']])}</section>
-  <section class="panel"><div class="ph">Chiffre d’affaires par formation</div><div class="chart" id="cFO"></div>${tableHTML(['Formation','CA encaissé'],[['HACCP',eur(32480)],['PMS',eur(19250)],['Pizzaiolo',eur(14700)],['Coiffure',eur(9750)],['Étiquetage',eur(5600)]])}</section>
+  <section class="panel"><div class="ph">${P?'RDV et signatures':'Des appels à la signature'}<span class="sp"></span><small>12 derniers mois</small></div><div class="chart" id="cFN"></div>${tableHTML(['Étape','Nombre'],P?[['RDV / audits',String(P.nbRdv)],['Signatures',String(P.nbSign)]]:[['Appels passés','1 284'],['Gérants intéressés','212'],['RDV pris','93'],['Signatures','38']])}</section>
+  <section class="panel"><div class="ph">Chiffre d’affaires par formation</div><div class="chart" id="cFO"></div>${tableHTML(['Formation','CA encaissé'],(P?P.caForm:[['HACCP',32480],['PMS',19250],['Pizzaiolo',14700],['Coiffure',9750],['Étiquetage',5600]]).map(r=>[r[0],eur(r[1])]))}</section>
  </div>`);
  $v().querySelectorAll('[data-rp]').forEach(b=>b.onclick=()=>{ui.repTab=b.dataset.rp;V.rapports()});
  if(ui.repTab!=='treso')return;
  const fK=(v,ax)=>ax?(v>=1000?Math.round(v/1000)+' k€':Math.round(v)+' €'):eur(v);
  groupedBars(document.getElementById('cCA'),MOIS,[{n:'Signé',v:SIG,c:css('--s1')},{n:'Facturé',v:FAC,c:css('--s2')},{n:'Encaissé',v:ENC,c:css('--s3')}],fK);
- lineChart(document.getElementById('cTR'),SEM,TRESO,css('--s1'),fK,{name:'Solde prévu',threshold:15000,thLabel:'Seuil d’alerte 15 000 €',every:2});
- hBars(document.getElementById('cOP'),[['AKTO',12880,'dont 5 100 € en retard'],['OPCO EP',3360,'dont 1 120 € en retard'],['Clients directs',1700,''],['OPCO Commerce',700,'']],css('--s1'),v=>eur(v),{name:'Reste à encaisser'});
+ lineChart(document.getElementById('cTR'),SEM,TRESO,css('--s1'),fK,P?{name:'Cumul attendu',every:2}:{name:'Solde prévu',threshold:15000,thLabel:'Seuil d’alerte 15 000 €',every:2});
+ hBars(document.getElementById('cOP'),(P?P.resteFin:[['AKTO',12880,'dont 5 100 € en retard'],['OPCO EP',3360,'dont 1 120 € en retard'],['Clients directs',1700,''],['OPCO Commerce',700,'']]),css('--s1'),v=>eur(v),{name:'Reste à encaisser'});
  lineChart(document.getElementById('cDL'),MOIS,DELAI,css('--s1'),(v,ax)=>Math.round(v)+' j',{name:'Délai moyen',every:2});
- hBars(document.getElementById('cFN'),[['Appels passés',1284,''],['Gérants intéressés',212,'17 % des appels'],['RDV pris',93,'44 % des intéressés'],['Signatures',38,'41 % des RDV']],['#86b6ef','#5598e7','#2a78d6','#1c5cab'],v=>v.toLocaleString('fr-FR'),{name:'Nombre'});
- hBars(document.getElementById('cFO'),[['HACCP',32480,''],['PMS',19250,''],['Pizzaiolo',14700,''],['Coiffure',9750,''],['Étiquetage',5600,'']],css('--s1'),v=>eur(v),{name:'CA encaissé'});
+ hBars(document.getElementById('cFN'),(P?[['RDV / audits',P.nbRdv,''],['Signatures',P.nbSign,P.nbRdv?Math.round(P.nbSign/P.nbRdv*100)+' % des RDV':'']]:[['Appels passés',1284,''],['Gérants intéressés',212,'17 % des appels'],['RDV pris',93,'44 % des intéressés'],['Signatures',38,'41 % des RDV']]),['#86b6ef','#5598e7','#2a78d6','#1c5cab'],v=>v.toLocaleString('fr-FR'),{name:'Nombre'});
+ hBars(document.getElementById('cFO'),(P?P.caForm:[['HACCP',32480,''],['PMS',19250,''],['Pizzaiolo',14700,''],['Coiffure',9750,''],['Étiquetage',5600,'']]),css('--s1'),v=>eur(v),{name:'CA encaissé'});
 };
 
 /* ===== Qualiopi / Paramètres ===== */

@@ -258,6 +258,53 @@
     function freshDossier() {
       return { mode: 'akto', has: {}, sal: [], ak: {}, dates: ['', ''], audit: '', valCom: false, ctrF: false, doc: {}, valForm: false, ctl: false, depot: false, accord: false, fact: 0, paye: false, rem: {} };
     }
+    // ---- Pilotage : performance & trésorerie à partir des données réelles ----
+    A.perf = function () {
+      var inv = S.db.opcoInv || [], dos = S.db.opcoDos || {}, links = S.db.links || {}, clients = S.db.clients || [], rdv = S.db.rdv || [], deals = S.db.deals || [];
+      var MNAMES = ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'];
+      var now = new Date(); now.setHours(0, 0, 0, 0);
+      var M = []; for (var i = 11; i >= 0; i--) { var d = new Date(now.getFullYear(), now.getMonth() - i, 1); M.push({ k: d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0'), l: MNAMES[d.getMonth()] }); }
+      var mk = function (s) { s = String(s || ''); return /^\d{4}-\d{2}/.test(s) ? s.slice(0, 7) : ''; };
+      var idx = function (k) { return M.map(function (m) { return m.k; }).indexOf(k); };
+      var paid = function (o) { return /pay|régl|vire|sold/i.test(String(o.etat || '')) || !!o.paye; };
+      var z = function () { return M.map(function () { return 0; }); };
+      var SIG = z(), FAC = z(), ENC = z();
+      // signé : dossiers AKTO par mois de début (montant demandé/engagé)
+      Object.keys(dos).forEach(function (kk) { var x = dos[kk]; var j = idx(mk(x.debut)); if (j >= 0) SIG[j] += (+x.dem || +x.eng || 0); });
+      // facturé : factures AKTO par date de réception/facture
+      inv.forEach(function (o) { var j = idx(mk(o.recu || o.date)); if (j >= 0) FAC[j] += (+o.ht || 0); });
+      // encaissé : factures payées par date de paiement
+      inv.forEach(function (o) { if (paid(o)) { var j = idx(mk(o.paye)); if (j >= 0) ENC[j] += (+o.ht || 0); } });
+      var sum = function (a) { return a.reduce(function (x, y) { return x + y; }, 0); };
+      // reste à encaisser par financeur
+      var reste = {}; inv.forEach(function (o) { if (!paid(o) && !/rejet|refus|annul/i.test(String(o.etat || ''))) { var k = o.opco || 'AKTO'; reste[k] = (reste[k] || 0) + (+o.ht || 0); } });
+      var resteR = Object.keys(reste).map(function (k) { return [k, reste[k], '']; }).sort(function (a, b) { return b[1] - a[1]; });
+      // délai moyen de paiement AKTO + par mois
+      var pd = function (s) { var p = String(s).split('-'); return new Date(p[0], p[1] - 1, p[2]); };
+      var dl = inv.filter(function (o) { return paid(o) && o.recu && o.paye; }).map(function (o) { return Math.max(0, Math.round((pd(o.paye) - pd(o.recu)) / 864e5)); });
+      var delaiMoy = dl.length ? Math.round(sum(dl) / dl.length) : 0;
+      var DELAI = M.map(function (m) { var a = inv.filter(function (o) { return paid(o) && mk(o.paye) === m.k && o.recu; }).map(function (o) { return Math.max(0, Math.round((pd(o.paye) - pd(o.recu)) / 864e5)); }); return a.length ? Math.round(sum(a) / a.length) : 0; });
+      // trésorerie : encaissements OPCO attendus cumulés sur 13 semaines
+      var med = dl.length ? dl.slice().sort(function (a, b) { return a - b; })[Math.floor(dl.length / 2)] : 45;
+      var monday = new Date(now); monday.setDate(monday.getDate() - ((monday.getDay() + 6) % 7));
+      var SEM = [], weeks = []; for (var w = 0; w < 13; w++) { var ws = new Date(monday); ws.setDate(ws.getDate() + w * 7); SEM.push(String(ws.getDate()).padStart(2, '0') + '/' + String(ws.getMonth() + 1).padStart(2, '0')); weeks.push(ws.getTime()); }
+      var perWeek = weeks.map(function () { return 0; });
+      inv.forEach(function (o) { if (paid(o) || /rejet|refus|annul/i.test(String(o.etat || ''))) return; var base = o.recu || o.date; if (!base) return; var exp = pd(base).getTime() + med * 864e5; var wi = 0; while (wi < 12 && exp >= weeks[wi + 1]) wi++; if (exp < weeks[0]) wi = 0; perWeek[wi] += (+o.ht || 0); });
+      var TRESO = []; var acc = 0; perWeek.forEach(function (v) { acc += v; TRESO.push(acc); });
+      // CA par formation (factures payées rattachées à un dossier)
+      var caForm = {}; inv.forEach(function (o) { if (!paid(o)) return; var x = dos[o.dossier] || {}; var t = /etiq|trac/i.test(x.titre || '') ? 'Étiquetage' : /sanitaire|pms|hygi/i.test(x.titre || '') ? 'PMS / HACCP' : (x.titre ? x.titre.slice(0, 22) : 'Autre'); caForm[t] = (caForm[t] || 0) + (+o.ht || 0); });
+      var caFormR = Object.keys(caForm).map(function (k) { return [k, caForm[k], '']; }).sort(function (a, b) { return b[1] - a[1]; }).slice(0, 6);
+      // entonnoir : RDV pris -> signatures
+      var nbRdv = rdv.length;
+      var nbSign = clients.filter(function (c) { return c.signe || String(c.statut || '') === 'Soldé'; }).length + deals.filter(function (d) { return /gagn|sign/i.test(d.etape || ''); }).length;
+      var retard = inv.filter(function (o) { return !paid(o) && o.recu && (now - pd(o.recu)) / 864e5 > 45; }).reduce(function (a, o) { return a + (+o.ht || 0); }, 0);
+      return {
+        M: M.map(function (m) { return m.l; }), SIG: SIG, FAC: FAC, ENC: ENC, SEM: SEM, TRESO: TRESO, DELAI: DELAI,
+        resteFin: resteR, caForm: caFormR, delaiMoy: delaiMoy, totReste: sum(Object.keys(reste).map(function (k) { return reste[k]; })),
+        retard: retard, nbRdv: nbRdv, nbSign: nbSign, encTotal: sum(ENC)
+      };
+    };
+
     // ---- pipeline facturation AKTO à partir des factures/dossiers réels ----
     A.fin = function () {
       var inv = S.db.opcoInv || [], links = S.db.links || {}, clients = S.db.clients || [];
