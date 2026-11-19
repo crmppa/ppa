@@ -10,6 +10,7 @@ def apply(s):
     # 2. Thème bleu + barre rétractable (feuille ajoutée, l'emporte sur l'existant)
     css=r"""<style id="ppa-skin">
 :root{--acc:#2456C7;--acc-fg:#FFFFFF;--acc-soft:#E7EEFB;--info:#2456C7;--info-soft:#E7EEFB}
+:root,:root[data-theme="dark"],:root[data-theme="light"]{--amber:#2456C7!important;--gold:#2456C7!important;--gold-soft:var(--acc-soft)!important;--rail-act:var(--acc-soft)!important}
 :root:not([data-theme="light"]){}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--acc:#6E9BFF;--acc-soft:#1D2A47;--acc-fg:#0F141E;--info:#6E9BFF;--info-soft:#1D2A47}}
 :root[data-theme="dark"]{--acc:#6E9BFF;--acc-soft:#1D2A47;--acc-fg:#0F141E;--info:#6E9BFF;--info-soft:#1D2A47}
@@ -39,6 +40,10 @@ def apply(s):
 </style>"""
     anchor='<div class="app" id="app">'
     assert s.count(anchor)==1,'app anchor'; s=s.replace(anchor,css+anchor)
+    # Pastilles « dossier chez » : palette maquette au lieu de l'or
+    if "const OWN={com:['Commercial','#8A6418'],adm:['Administration','#4B4A8F'],form:['Formateur','#2E6E5E'],fin:['Terminé','#4A5568']}" in s:
+        s=s.replace("const OWN={com:['Commercial','#8A6418'],adm:['Administration','#4B4A8F'],form:['Formateur','#2E6E5E'],fin:['Terminé','#4A5568']}",
+                    "const OWN={com:['Commercial','#B45309'],adm:['Administration','#2456C7'],form:['Formateur','#0B7A0B'],fin:['Terminé','#64748B']}")
     return s
 if __name__=='__main__':
     s=open(sys.argv[1],encoding='utf-8').read();open(sys.argv[2],'w',encoding='utf-8').write(apply(s));print('skin ok',len(s))
