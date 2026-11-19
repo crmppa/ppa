@@ -233,7 +233,14 @@ details.tbl .t td,details.tbl .t th{padding:6px 10px}
  .vgrp .t .name,.t.cards .name{font-size:15.5px}
  .vgrp .t td[data-l]:not(:first-child)::before,.t.cards td[data-l]:not(:first-child)::before{content:attr(data-l);display:block;font:600 11px/1.4 system-ui;color:var(--mut);text-transform:uppercase;letter-spacing:.04em;margin:8px 0 1px}
  .vgrp .t td:empty,.t.cards td:empty{display:none}
- .vgrp .t .vacts,.t.cards .vacts{justify-content:flex-start;margin-top:8px}}
+ .vgrp .t .vacts,.t.cards .vacts{justify-content:flex-start;margin-top:8px}
+ /* fiches d'appel : empilées proprement (nom, puis téléphone, puis actions) */
+ .callrow{display:block}
+ .callrow .grow,.callrow .ctel,.callrow .vacts{width:100%!important;flex:none}
+ .callrow .ctel{margin-top:8px;display:flex;align-items:baseline;gap:8px}
+ .callrow .ctel small{color:var(--mut)}
+ .callrow .vacts{margin-top:10px;justify-content:flex-start}
+ .callrow .vacts .btn{flex:1 1 auto}}
 
 /* ===== Menu latéral clair ===== */
 .ngroup{display:flex;flex-direction:column;gap:2px;padding:6px 0}
