@@ -64,6 +64,7 @@ post = r"""<script>
 a = s.rindex('</body>') if '</body>' in s else len(s)
 s = s[:a] + post + s[a:]
 
+import importlib.util as _i;_sp=_i.spec_from_file_location('skin',os.path.join(os.path.dirname(os.path.abspath(__file__)),'skin.py'));_sk=_i.module_from_spec(_sp);_sp.loader.exec_module(_sk);s=_sk.apply(s)
 open(out, 'w', encoding='utf-8').write(s)
 os.remove(tmp)
 print('OK', n, 'remplacements', len(s), 'caractères')
