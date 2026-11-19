@@ -216,14 +216,24 @@ details.tbl .t td,details.tbl .t th{padding:6px 10px}
  .side>.navgrp{display:none}
  .nav{flex-direction:column;gap:0;padding:8px 7px;width:auto;min-width:0;align-items:center;justify-content:center;height:40px}
  .nav span{display:none}.nav svg{width:22px;height:22px;display:block}.nav .cnt{position:absolute;margin-top:-6px;margin-left:14px}
- /* tableaux : colonnes dimensionnées au contenu + défilement horizontal (plus de chevauchement) */
- .tw{overflow-x:auto;-webkit-overflow-scrolling:touch}
+ /* onglets : tous visibles (enroulés sur plusieurs lignes), pas de défilement caché */
+ .tabs{flex-wrap:wrap;overflow:visible;gap:4px;padding-bottom:4px}
+ .tabs .tab{flex:1 1 auto;text-align:center;padding:9px 8px;font-size:13.5px;white-space:normal;border-bottom:0;border-radius:9px}
+ .tabs .tab[aria-selected="true"]{background:var(--accent-soft)}
+ /* tableaux de données -> cartes libellées (fini le vrac et le défilement) */
+ .tw{overflow:visible}
  .fgrp .t{table-layout:auto!important}
- .fgrp .t td:first-child,.fgrp .t th:first-child,.fgrp .t td:nth-child(3),.fgrp .t th:nth-child(3),.fgrp .t td:nth-child(4),.fgrp .t th:nth-child(4){width:auto!important}
- .tw .t{min-width:600px}
- /* onglets : défilement horizontal fluide, sans barre visible */
- .tabs{-webkit-overflow-scrolling:touch;scrollbar-width:none}.tabs::-webkit-scrollbar{display:none}
- .tabs .tab{white-space:nowrap}}
+ .vgrp .t,.t.cards{min-width:0;display:block}
+ .vgrp .t thead,.t.cards thead{display:none}
+ .vgrp .t tbody,.t.cards tbody{display:block}
+ .vgrp .t tr,.t.cards tr{display:block;border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin:0 0 10px;background:var(--panel)}
+ .vgrp .t tr:hover td,.t.cards tr:hover td{background:none}
+ .vgrp .t td,.t.cards td{display:block;width:auto!important;padding:2px 0!important;border:0!important;white-space:normal!important;text-align:left!important}
+ .vgrp .t td:first-child,.t.cards td:first-child{margin-bottom:5px}
+ .vgrp .t .name,.t.cards .name{font-size:15.5px}
+ .vgrp .t td[data-l]:not(:first-child)::before,.t.cards td[data-l]:not(:first-child)::before{content:attr(data-l);display:block;font:600 11px/1.4 system-ui;color:var(--mut);text-transform:uppercase;letter-spacing:.04em;margin:8px 0 1px}
+ .vgrp .t td:empty,.t.cards td:empty{display:none}
+ .vgrp .t .vacts,.t.cards .vacts{justify-content:flex-start;margin-top:8px}}
 
 /* ===== Menu latéral clair ===== */
 .ngroup{display:flex;flex-direction:column;gap:2px;padding:6px 0}
@@ -704,7 +714,7 @@ V.entreprises=()=>{
  <div class="filters"><select id="fSt" aria-label="Étape"><option value="">Toutes les étapes</option>${STAGES.map(s=>`<option value="${s[0]}" ${ui.entStage===s[0]?'selected':''}>${s[1]}</option>`).join('')}</select>
  <select id="fCo" aria-label="Commercial"><option value="">Tous les commerciaux</option>${['RA','ME'].map(c=>`<option value="${c}" ${ui.entCom===c?'selected':''}>${TEAM[c]}</option>`).join('')}</select>
  <input id="fQ" placeholder="Nom, ville, activité" value="${esc(ui.entQ)}" aria-label="Filtrer"><span class="sp"></span><small>${L.length} résultat${L.length>1?'s':''}</small></div>
- <div class="tw"><table class="t"><thead><tr><th>Entreprise</th><th>Étape · dossier chez</th><th>Commercial</th><th>Dernier contact</th><th>Reste à faire</th><th class="num">Montant</th></tr></thead><tbody>
+ <div class="tw"><table class="t cards"><thead><tr><th>Entreprise</th><th>Étape · dossier chez</th><th>Commercial</th><th>Dernier contact</th><th>Reste à faire</th><th class="num">Montant</th></tr></thead><tbody>
  ${L.map(e=>`<tr class="click" data-open="${e.id}" tabindex="0"><td><span class="name">${esc(e.nom)}</span><span class="sub">${esc(e.ville)} · ${esc(e.act)}</span></td><td>${v112St(e)}</td><td>${who(e.com)}</td><td>${dLabel(e.last)}</td><td><span class="${e.nextD<0?'late':''}">${esc(e.next)}</span><span class="sub">${dLabel(e.nextD)}</span></td><td class="num">${e.ca?eur(e.ca):'—'}</td></tr>`).join('')||`<tr><td colspan="6"><div class="empty"><b>Aucune entreprise</b>Changez les filtres ou ajoutez une entreprise.</div></td></tr>`}
  </tbody></table></div></section>`;
  $v().querySelectorAll('[data-v]').forEach(b=>b.onclick=()=>{ui.entView=b.dataset.v;V.entreprises()});
@@ -1053,7 +1063,7 @@ V.finances=()=>{const own=role==='terrain'||role==='phoneuse';if(own)ui.finTab='
   if(CM){const R=CM.lines;
    body=`<p class="note" style="padding-top:14px">Le paiement de l’OPCO lance un décompte de 30 jours : la commission devient facturable à la fin de ce délai, sur le montant HT versé. Barème : 5 % origine, 10 % commercial, 15 % si même personne ou renouvellement.</p>
    <div class="kpis" style="padding:0 14px 14px"><div class="kpi"><small>${own?'Dues · à recevoir':'Dues · à verser'}</small><b>${eur(CM.kpis.due)}</b></div><div class="kpi"><small>Décompte en cours</small><b>${eur(CM.kpis.decompte)}</b></div><div class="kpi"><small>En attente du paiement OPCO</small><b>${eur(CM.kpis.attente)}</b></div><div class="kpi"><small>${own?'Reçues':'Versées'} en ${(new Date()).getFullYear()}</small><b>${eur(CM.kpis.verse)}</b></div></div>
-   ${R.length?`<div class="tw"><table class="t"><thead><tr><th>Client · dossier</th><th>État · barème${own?'':' · personne'}</th><th class="num">HT payé</th><th class="num">Commission</th></tr></thead><tbody>${R.map(x=>`<tr><td class="name">${esc(x.client)}<small>${esc(x.dossier)}</small></td><td style="white-space:normal"><span class="pill ${PS[x.s][1]}">${PS[x.s][0]}</span> ${own?'':esc(x.whoName)+' · '}${x.role==='tel'?'RDV pris · 5 %':Math.round(x.taux*100)+' %'}${x.opPaid&&x.date?' · OPCO payé le '+String(x.date).split('-').reverse().join('/'):''}</td><td class="num">${eur(x.ht)}</td><td class="num"><b>${eur(x.m)}</b></td></tr>`).join('')}</tbody></table></div>`:'<section class="panel"><div class="empty"><b>Aucune commission</b>Elles apparaissent dès qu’un dossier AKTO rattaché à un commercial est payé.</div></section>'}`;
+   ${R.length?`<div class="tw"><table class="t cards"><thead><tr><th>Client · dossier</th><th>État · barème${own?'':' · personne'}</th><th class="num">HT payé</th><th class="num">Commission</th></tr></thead><tbody>${R.map(x=>`<tr><td class="name">${esc(x.client)}<small>${esc(x.dossier)}</small></td><td style="white-space:normal"><span class="pill ${PS[x.s][1]}">${PS[x.s][0]}</span> ${own?'':esc(x.whoName)+' · '}${x.role==='tel'?'RDV pris · 5 %':Math.round(x.taux*100)+' %'}${x.opPaid&&x.date?' · OPCO payé le '+String(x.date).split('-').reverse().join('/'):''}</td><td class="num">${eur(x.ht)}</td><td class="num"><b>${eur(x.m)}</b></td></tr>`).join('')}</tbody></table></div>`:'<section class="panel"><div class="empty"><b>Aucune commission</b>Elles apparaissent dès qu’un dossier AKTO rattaché à un commercial est payé.</div></section>'}`;
   } else body=`<p class="note" style="padding-top:14px">Le paiement de l’OPCO lance un décompte de 30 jours.</p><div class="kpis" style="padding:0 14px 14px"><div class="kpi"><small>Dues</small><b>${eur(262)}</b></div></div>`;}
  $v().innerHTML=head(own?'Mes commissions':'Facturation','Ce qui est dû, ce qui est payé, ce qui est en retard',own?'':'<button class="btn primary" data-go="aujourdhui">Importer les exports AKTO</button>')+
  `<section class="panel">${T.length>1?`<div class="tabs" role="tablist">${T.map(([k,l])=>`<button class="tab" role="tab" aria-selected="${ui.finTab===k}" data-ft="${k}">${l}</button>`).join('')}</div>`:''}${body}</section>`;
@@ -1119,7 +1129,7 @@ V.rapports=()=>{
  <div class="ph">Cycle de certification 3 ans</div><ol class="chain" style="padding:0 12px 14px">${[['Certification initiale','15/03/2025',1],['Aujourd’hui','19/11/2026',2],['Surveillance','16/04/2027',0],['Renouvellement','15/03/2028',0]].map(([t,d,k])=>`<li class="${k===1?'done':k===2?'cur':''}"><span></span><b>${t}</b><small>${d}</small></li>`).join('')}</ol><p class="note">L’audit de surveillance a lieu entre le 14e et le 22e mois après la certification initiale.</p></section>
  <section class="panel"><div class="ph">Préparation de l’audit<span class="sp"></span><small>3/7</small></div><ul class="plist">${[['Audit blanc interne réalisé',1],['Preuves formateurs à jour (ind. 21-22)',1],['Synthèse satisfaction à chaud et à froid (ind. 30)',0],['Registre des réclamations à jour (ind. 31)',1],['Veille réglementaire et métier documentée (ind. 23-25)',0],['Analyse des abandons et interruptions (ind. 12)',0],['Plan d’amélioration continue mis à jour (ind. 32)',0]].map(([t,k])=>`<li class="${k?'ok':''}"><span class="st">${k?'✓':''}</span><div class="grow"><b>${t}</b></div></li>`).join('')}</ul></section>
  <section class="panel"><div class="ph">Les 7 critères · preuves réunies</div><ul class="plist">${[['1 · Information du public','ind. 1 à 3',100],['2 · Objectifs et adaptation des prestations','ind. 4 à 8',92],['3 · Accueil, suivi et évaluation','ind. 9 à 16',85],['4 · Moyens pédagogiques et techniques','ind. 17 à 20',100],['5 · Qualification des intervenants','ind. 21 et 22',70],['6 · Environnement professionnel et veille','ind. 23 à 29',78],['7 · Appréciations et réclamations','ind. 30 à 32',88]].map(([t,i,v])=>`<li><div class="grow"><b>${t}</b><small>${i}</small></div><span style="display:inline-block;width:90px;height:6px;border-radius:3px;background:var(--line2);overflow:hidden"><i style="display:block;height:100%;width:${v}%;background:${v>=90?'var(--good)':v>=80?'var(--accent)':'var(--warn)'}"></i></span><b style="width:44px;text-align:right">${v} %</b></li>`).join('')}</ul></section>
- <section class="panel"><div class="ph">Échéances réglementaires</div><div class="tw"><table class="t"><thead><tr><th>Obligation</th><th>Date</th><th>Délai</th><th></th></tr></thead><tbody>${[['Bilan pédagogique et financier (BPF)','31/05/2027','dans 193 j','p-mut'],['Audit de surveillance Qualiopi','16/04/2027','dans 148 j','p-mut'],['Renouvellement certification Qualiopi','15/03/2028','dans 482 j','p-mut']].map(r=>`<tr><td class="name">${r[0]}</td><td>${r[1]}</td><td><span class="pill ${r[3]}">${r[2]}</span></td><td class="num"><button class="btn sm">Fait</button></td></tr>`).join('')}</tbody></table></div>
+ <section class="panel"><div class="ph">Échéances réglementaires</div><div class="tw"><table class="t cards"><thead><tr><th>Obligation</th><th>Date</th><th>Délai</th><th></th></tr></thead><tbody>${[['Bilan pédagogique et financier (BPF)','31/05/2027','dans 193 j','p-mut'],['Audit de surveillance Qualiopi','16/04/2027','dans 148 j','p-mut'],['Renouvellement certification Qualiopi','15/03/2028','dans 482 j','p-mut']].map(r=>`<tr><td class="name">${r[0]}</td><td>${r[1]}</td><td><span class="pill ${r[3]}">${r[2]}</span></td><td class="num"><button class="btn sm">Fait</button></td></tr>`).join('')}</tbody></table></div>
  <div class="ph">Réclamations<span class="sp"></span><button class="btn sm">Nouvelle réclamation</button></div><ul class="plist"><li><div class="grow"><b>Retard de convocation</b><small>Tacos Factory · 04/11/2026 · réponse sous 15 jours (indicateur 31)</small></div><button class="btn sm primary">Clôturer</button></li></ul></section></div>`:ui.repTab!=='treso'?`<section class="panel"><div class="empty"><b>${T.find(t=>t[0]===ui.repTab)[1]}</b>Ce rapport reprendra les chiffres des anciens onglets « Performance ». La maquette détaille l’onglet Performance &amp; trésorerie.</div></section>`:
  `<div class="kpis">
   <div class="kpi"><small>Encaissé sur 12 mois</small><b>${eur(sumY(ENC))}</b><div class="d" style="color:var(--ink2)">${P?'factures AKTO payées':'+22 % vs 12 mois précédents'}</div></div>
@@ -1179,7 +1189,9 @@ function lsInject(){if(route==='aujourdhui'||route==='entreprises'||route.starts
  const box=document.createElement('div');box.className='lsearch';box.innerHTML=`<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input type="search" placeholder="Rechercher dans ${esc(sec)}…" aria-label="Rechercher dans ${esc(sec)}"><small></small>`;
  const tabs=$v().querySelector('.panel > .tabs, .tabs');if(tabs)tabs.insertAdjacentElement('afterend',box);else{const vh=$v().querySelector('.vh');(vh||$v().firstChild).insertAdjacentElement('afterend',box)}
  const i=box.querySelector('input'),k=lsKey();i.value=ui.lsv[k]||'';i.oninput=()=>{ui.lsv[lsKey()]=i.value;lsApply(i.value)};if(i.value)lsApply(i.value)}
-new MutationObserver(()=>lsInject()).observe(document.getElementById('view'),{childList:true});
+function cardLabels(){try{document.querySelectorAll('#view table.t').forEach(function(t){var hs=[].map.call(t.querySelectorAll('thead th'),function(th){return th.textContent.trim()});if(!hs.length)return;[].forEach.call(t.querySelectorAll('tbody tr'),function(tr){if(tr.classList.contains('salx'))return;var i=0;[].forEach.call(tr.children,function(td){var cs=+(td.getAttribute('colspan')||1);if(hs[i]&&!td.hasAttribute('data-l'))td.setAttribute('data-l',hs[i]);i+=cs;});});});}catch(e){}}
+new MutationObserver(()=>{lsInject();cardLabels()}).observe(document.getElementById('view'),{childList:true});
+cardLabels();
 /* menu selon le rôle (démonstration) */
 document.body.classList.add('nv-light');
 (function(){const set=v=>{role=v;try{localStorage.setItem('ppa-role',v)}catch(e){};document.querySelectorAll('[data-rl]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.rl===v)));if(!ROLES[v].v.includes(route.startsWith('fiche')?'entreprises':route)&&route!=='parametres')go('aujourdhui');else render()};
