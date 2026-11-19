@@ -517,6 +517,30 @@ const head=(t,p,act)=>`<div class="vh"><div><h1>${t}</h1>${p?`<p>${p}</p>`:''}</
 const who=c=>c?`<span class="who"><span class="av">${c}</span>${esc(TEAM[c])}</span>`:'<span style="color:var(--mut)">Non attribué</span>';
 const stPill=s=>`<span class="pill ${ST[s][2]}">${ST[s][1]}</span>`;
 
+/* import d'une liste d'appels, partagé entre Accueil et Prospection */
+async function callsImport(fl,after){
+ if(!fl||!fl.length)return;
+ const now=()=>new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+ if(window.PPA_ADAPT&&PPA_ADAPT.real&&window.PPA_IMPORT){
+  toast('Lecture de la liste d’appels…');
+  try{
+   const who=(PPA_ADAPT.ROLES.phoneuse&&PPA_ADAPT.ROLES.phoneuse.eid)||PPA_ADAPT.meId;
+   const res=await PPA_IMPORT.importCalls([...fl].slice(0,6),PPA_ADAPT.raw,who,'Liste du '+new Date().toLocaleDateString('fr-FR'));
+   PPA_ADAPT.save&&PPA_ADAPT.save();
+   const files=res.map(x=>x.error?{name:x.name,pdf:false,r:{err:x.error}}:{name:x.name,pdf:x.pdf,lus:x.lus,nv:x.nv,dbl:x.dbl,sans:x.sans,chk:0});
+   const tot={lus:files.reduce((a,f)=>a+(f.lus||0),0),nv:files.reduce((a,f)=>a+(f.nv||0),0)};
+   ui.impCalls={files,tot,h:now()};
+   const errs=res.filter(x=>x.error).length;
+   toast(tot.nv+' fiche(s) ajoutée(s) aux appels'+(errs?' · '+errs+' fichier(s) non lus':''));
+   after&&after();
+  }catch(e){toast('Import impossible : '+(e.message||e))}
+  return;
+ }
+ const files=[...fl].map((f,i)=>{const pdf=/\.pdf$/i.test(f.name),lus=pdf?13:40+i*12,dbl=pdf?0:3+i%3,sans=pdf?0:2,chk=pdf?5:0;return {name:f.name,pdf,lus,dbl,sans,chk,nv:lus-dbl-sans-chk}});
+ const tot={lus:files.reduce((a,f)=>a+f.lus,0),nv:files.reduce((a,f)=>a+f.nv,0)};ui.impCalls={files,tot,h:now()};
+ after&&after();toast(tot.nv+' fiches ajoutées aux appels');
+}
+
 /* ===== Aujourd'hui ===== */
 V.aujourdhui=()=>{
  const TD=(window.PPA_ADAPT&&PPA_ADAPT.real&&PPA_ADAPT.today)?PPA_ADAPT.today(role):null;
@@ -585,7 +609,7 @@ V.aujourdhui=()=>{
    return;
   }
   const used=new Set(),files=[...fl].slice(0,6).map((f,i)=>{const n=f.name.toLowerCase();let o=/suivi|dossier/.test(n)?'Suivi des dossiers':/paiement|virement/.test(n)?'Paiements':/factur/.test(n)?'Facturation':null;if(!o||used.has(o))o=OPCOS.find(x=>!used.has(x))||'AKTO';used.add(o);return {name:f.name,o,r:OPCO_RES[o]}});ui.impOpco={files,h:now()};V.aujourdhui();toast(files.length+' export'+(files.length>1?'s':'')+' AKTO importé'+(files.length>1?'s':''))};
- const doCalls=fl=>{if(!fl.length)return;const files=[...fl].map((f,i)=>{const pdf=/\.pdf$/i.test(f.name),lus=pdf?13:40+i*12,dbl=pdf?0:3+i%3,sans=pdf?0:2,chk=pdf?5:0;return {name:f.name,pdf,lus,dbl,sans,chk,nv:lus-dbl-sans-chk}});const tot={lus:files.reduce((a,f)=>a+f.lus,0),nv:files.reduce((a,f)=>a+f.nv,0)};ui.impCalls={files,tot,h:now()};V.aujourdhui();toast(tot.nv+' fiches ajoutées aux appels')};
+ const doCalls=fl=>callsImport(fl,()=>V.aujourdhui());
  const wire=(btn,inp,zone,fn)=>{const i=document.getElementById(inp),z=document.getElementById(zone);document.getElementById(btn).onclick=()=>{i.value='';i.click()};i.onchange=()=>fn(i.files);
   z.ondragover=e=>{e.preventDefault();z.classList.add('over')};z.ondragleave=()=>z.classList.remove('over');z.ondrop=e=>{e.preventDefault();z.classList.remove('over');fn(e.dataTransfer.files)}};
  wire('bOpco','fOpco','dOpco',doOpco);wire('bCalls','fCalls','dCalls',doCalls);
@@ -859,15 +883,28 @@ const CALLS=[
  {g:'nonum',n:'Kebab du Beffroi',v:'Douai',a:'Restauration rapide',tel:'',alim:'À améliorer',prio:1,h:'Jamais appelé',ang:'PMS'}];
 const CG=[['now','À rappeler maintenant','Rappels arrivés à échéance','#9B2226'],['todo','À appeler','Contacts jamais appelés','#3D4A8A'],['int','Intéressés · à relancer','','#56702A'],['prog','Rappels programmés','','#8A6418'],['nr','Appelés · sans réponse','','#5B6577'],['non','Non intéressés','','#7A5A5A'],['nonum','Sans numéro · à rechercher','Impossible d’appeler : trouvez le numéro, saisissez-le, la fiche passe dans « À appeler »','#7A2E8E']];
 V.appels=()=>{const mgr=role==='direction'||role==='admin';
- $v().innerHTML=head('Prospection','Vos contacts à appeler. Cliquez sur le numéro pour appeler, puis sur le résultat. « RDV pris » ouvre la fiche : complétez ce qui manque, choisissez le commercial et la date, et le dossier passe au commercial.','<button class="btn">Nouvelle fiche</button><button class="btn primary">Importer une liste</button>')+
- `<div class="kpis"><div class="kpi"><small>À rappeler maintenant</small><b style="color:var(--bad)">1</b><div class="d" style="color:var(--ink2)">Rappels arrivés à échéance</div></div><div class="kpi"><small>À appeler</small><b>3</b><div class="d" style="color:var(--ink2)">Jamais appelés</div></div><div class="kpi"><small>Sans numéro</small><b>1</b><div class="d" style="color:var(--ink2)">À rechercher avant d’appeler</div></div><div class="kpi"><small>Appels du jour</small><b>14</b><div class="d" style="color:var(--ink2)">Résultats saisis aujourd’hui</div></div><div class="kpi"><small>RDV pris ce mois</small><b>9</b><div class="d" style="color:var(--ink2)">Passés au commercial</div></div></div>
- <div class="filters panel" style="border-radius:var(--r)"><select aria-label="Liste"><option>Toutes les listes</option><option>Veille 11/10 · Nord–Pas-de-Calais</option><option>Liste du 04/11/2026</option></select>${mgr?'<select aria-label="Personne"><option>Toute l’équipe</option><option>Sarah L.</option></select><button class="btn sm">Attribuer / répartir cette liste</button>':''}<span class="sp"></span><button class="btn sm ghost">Supprimer une liste</button></div>
- ${CG.map(([k,l,sub,c])=>{const L=CALLS.filter(x=>x.g===k);if(!L.length)return '';return `<section class="panel vgrp" style="--gc:${c}"><div class="ph"><i class="gdot"></i>${l}${sub?`<small style="margin-left:6px">${sub}</small>`:''}<span class="sp"></span><small>${L.length}</small></div>
-  <ul class="list">${L.map(x=>`<li class="callrow"><div class="grow"><b>${esc(x.n)}</b>${x.prio?' <span class="pill p-bad">Priorité haute</span>':''}<small>${esc(x.v)} · ${esc(x.a)}${x.alim?` · <span style="color:${/urgente/.test(x.alim)?'var(--bad)':/améliorer/.test(x.alim)?'var(--warn)':'inherit'}">Alim’confiance : ${esc(x.alim)}</span>`:''}${x.ang?' · Angle : '+esc(x.ang):''}</small>${x.script?'<details class="scr"><summary>Script d’appel</summary><p><b>Accroche :</b> « Bonjour, PPA Formation accompagne les boucheries et charcuteries sur le PMS, les relevés de froid et la traçabilité… »</p><p><b>Questions :</b> 1. L’établissement est-il autorisé à fonctionner ? 2. Quelles mesures correctives ont été documentées ? 3. Qui gère les lots et les températures ?</p><p><b>À éviter :</b> ne jamais affirmer que le commerce est ouvert.</p></details>':''}</div>
+ const CA=(window.PPA_ADAPT&&PPA_ADAPT.real&&PPA_ADAPT.calls)?PPA_ADAPT.calls(role):null;const CL=CA?CA.rows:CALLS;const K=CA?CA.kpis:null;
+ const sc=x=>{if(!x.script)return '';if(CA)return `<details class="scr"><summary>Script d’appel</summary>${x.accroche?`<p><b>Accroche :</b> « ${esc(x.accroche)} »</p>`:''}${x.questions&&x.questions.length?`<p><b>Questions :</b> ${x.questions.map((q,i)=>(i+1)+'. '+esc(q)).join(' ')}</p>`:''}${x.eviter?`<p><b>À éviter :</b> ${esc(x.eviter)}</p>`:''}</details>`;return '<details class="scr"><summary>Script d’appel</summary><p><b>Accroche :</b> « Bonjour, PPA Formation accompagne les boucheries et charcuteries sur le PMS, les relevés de froid et la traçabilité… »</p><p><b>Questions :</b> 1. L’établissement est-il autorisé à fonctionner ? 2. Quelles mesures correctives ont été documentées ? 3. Qui gère les lots et les températures ?</p><p><b>À éviter :</b> ne jamais affirmer que le commerce est ouvert.</p></details>'};
+ $v().innerHTML=head('Prospection','Vos contacts à appeler. Cliquez sur le numéro pour appeler, puis sur le résultat.','<button class="btn primary" id="bCallsP">Importer une liste d’appels</button>')+
+ `<input type="file" id="fCallsP" accept=".pdf,.xlsx,.xls,.csv" multiple hidden>
+ <div class="kpis"><div class="kpi"><small>À rappeler maintenant</small><b style="color:var(--bad)">${K?K.now:1}</b><div class="d" style="color:var(--ink2)">Rappels arrivés à échéance</div></div><div class="kpi"><small>À appeler</small><b>${K?K.todo:3}</b><div class="d" style="color:var(--ink2)">Jamais appelés</div></div><div class="kpi"><small>Sans numéro</small><b>${K?K.nonum:1}</b><div class="d" style="color:var(--ink2)">À rechercher avant d’appeler</div></div><div class="kpi"><small>Appels du jour</small><b>${K?K.today:14}</b><div class="d" style="color:var(--ink2)">Résultats saisis aujourd’hui</div></div><div class="kpi"><small>RDV pris ce mois</small><b>${K?K.rdvMois:9}</b><div class="d" style="color:var(--ink2)">Passés au commercial</div></div></div>
+ ${CL.length?'':'<section class="panel"><div class="empty"><b>Aucune fiche à appeler</b>Importez une liste d’appels (PDF de veille, Excel ou CSV) pour démarrer.</div></section>'}
+ ${CG.map(([k,l,sub,c])=>{const L=CL.filter(x=>x.g===k);if(!L.length)return '';return `<section class="panel vgrp" style="--gc:${c}"><div class="ph"><i class="gdot"></i>${l}${sub?`<small style="margin-left:6px">${sub}</small>`:''}<span class="sp"></span><small>${L.length}</small></div>
+  <ul class="list">${L.map(x=>`<li class="callrow"><div class="grow"><b>${esc(x.n)}</b>${x.prio?' <span class="pill p-bad">Priorité haute</span>':''}<small>${esc(x.v)} · ${esc(x.a)}${x.alim?` · <span style="color:${/urgente/.test(x.alim)?'var(--bad)':/améliorer/.test(x.alim)?'var(--warn)':'inherit'}">Alim’confiance : ${esc(x.alim)}</span>`:''}${x.ang?' · Angle : '+esc(x.ang):''}</small>${sc(x)}</div>
    <div class="ctel">${x.tel?`<b>${x.tel}</b>`:'<span class="late">Pas de numéro</span>'}<small>${esc(x.h)}</small></div>
-   <div class="vacts">${x.tel?['Pas de réponse','À rappeler','Intéressé','Pas intéressé'].map(r=>`<button class="btn sm" data-cr="${r}">${r}</button>`).join('')+'<button class="btn sm primary" data-cr="RDV pris">RDV pris</button>':'<button class="btn sm">Chercher le numéro</button><button class="btn sm">Pages Jaunes</button><input placeholder="Saisir le numéro trouvé" aria-label="Numéro"><button class="btn sm primary">Enregistrer</button><button class="btn sm ghost">Introuvable</button>'}<button class="btn sm openb" data-t="Ouvrirait la fiche prospect">Fiche ›</button></div></li>`).join('')}</ul></section>`}).join('')}`;
+   <div class="vacts">${x.tel?['Pas de réponse','À rappeler','Intéressé','Pas intéressé'].map(r=>`<button class="btn sm" data-cr="${r}" data-id="${x.id||''}">${r}</button>`).join('')+`<button class="btn sm primary" data-cr="RDV pris" data-id="${x.id||''}">RDV pris</button>`:`<button class="btn sm" data-t="Rechercher le numéro">Chercher le numéro</button>`}<button class="btn sm openb" data-open="${x.id||''}">Fiche ›</button></div></li>`).join('')}</ul></section>`}).join('')}`;
+ const fi=document.getElementById('fCallsP');const bc=document.getElementById('bCallsP');if(bc&&fi){bc.onclick=()=>{fi.value='';fi.click()};fi.onchange=()=>callsImport(fi.files,()=>V.appels())}
  $v().querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>toast('Maquette : '+b.dataset.t));
- $v().querySelectorAll('[data-cr]').forEach(b=>b.onclick=()=>toast(b.dataset.cr==='À rappeler'?'À rappeler · rappel proposé le 23/11/2026 (J+2, décalé au lundi)':b.dataset.cr==='RDV pris'?'Maquette : ouvrirait la fiche prospect avec le bloc « Rendez-vous commercial »':b.dataset.cr+' · enregistré'));
+ $v().querySelectorAll('[data-cr]').forEach(b=>b.onclick=()=>{
+   const id=b.dataset.id,cr=b.dataset.cr;
+   if(CA&&id&&PPA_ADAPT.raw){const d=(PPA_ADAPT.raw.deals||[]).find(x=>x.id===id);if(d){d.suivi=d.suivi||{};
+     const map={'Pas de réponse':'nrp','À rappeler':'rappel','Intéressé':'interesse','Pas intéressé':'non','RDV pris':'rdv'};d.suivi.statut=map[cr]||cr;d.suivi.date=new Date().toISOString().slice(0,10);
+     if(cr==='À rappeler'){const r=new Date();r.setDate(r.getDate()+2);while(r.getDay()%6===0)r.setDate(r.getDate()+1);d.suivi.date=r.toISOString().slice(0,10)}
+     if(cr==='RDV pris'){d.etape='RDV fixé'}
+     PPA_ADAPT.save&&PPA_ADAPT.save();V.appels();toast(cr==='RDV pris'?'RDV pris · passé au commercial':cr+' · enregistré');return}}
+   toast(cr==='À rappeler'?'À rappeler · rappel proposé (J+2, décalé au lundi)':cr==='RDV pris'?'Maquette : ouvrirait la fiche prospect':cr+' · enregistré');
+ });
+ bindOpen&&bindOpen();
 };
 
 /* ===== Émargement : un seul QR code → page de signature → case du Word 04 ===== */

@@ -258,6 +258,38 @@
     function freshDossier() {
       return { mode: 'akto', has: {}, sal: [], ak: {}, dates: ['', ''], audit: '', valCom: false, ctrF: false, doc: {}, valForm: false, ctl: false, depot: false, accord: false, fact: 0, paye: false, rem: {} };
     }
+    // ---- Prospection : fiches à appeler depuis db.deals (leads) ----
+    A.calls = function (role) {
+      var deals = S.db.deals || [];
+      var meId2 = meId, isCom = role === 'terrain' || role === 'phoneuse';
+      var now = new Date(); now.setHours(0, 0, 0, 0);
+      var pd = function (s) { var p = String(s || '').split('-'); return new Date(p[0], p[1] - 1, p[2]); };
+      var leads = deals.filter(function (d) { return (d.lead || /prospect/i.test(d.etape || '')) && !/gagn|sign|perdu|refus/i.test(d.etape || ''); });
+      if (isCom) leads = leads.filter(function (d) { return d.phoneuse === meId2 || d.commercial === meId2; });
+      var grp = function (d) {
+        var st = (d.suivi && d.suivi.statut) || '';
+        if (!d.tel) return 'nonum';
+        if (/interess/i.test(st) && !/pas/i.test(st)) return 'int';
+        if (/rappel|arappeler/i.test(st)) { var rd = d.suivi && d.suivi.date; return rd && pd(rd) > now ? 'prog' : 'now'; }
+        if (/pas.?inter|refus|non/i.test(st)) return 'non';
+        if (/nrp|pas.?rep|repondeur|absent/i.test(st)) return 'nr';
+        if (st) return 'nr';
+        return 'todo';
+      };
+      var rows = leads.map(function (d) {
+        var st = (d.suivi && d.suivi.statut) || '';
+        return { id: d.id, g: grp(d), n: d.nom || d.rs || d.id, v: d.ville || '', a: d.act || d.acti || '—', tel: d.tel || '', alim: d.alim || '', prio: d.priorite === 'haute' ? 1 : 0, ang: d.angle || '', script: !!(d.accroche || (d.questions && d.questions.length)), h: st ? ('Dernier résultat : ' + st + (d.suivi && d.suivi.date ? ' · ' + d.suivi.date : '')) : 'Jamais appelé', accroche: d.accroche || '', questions: d.questions || [], eviter: d.eviter || '' };
+      });
+      var cnt = function (g) { return rows.filter(function (r) { return r.g === g; }).length; };
+      var today = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
+      var mkk = today.slice(0, 7);
+      return { rows: rows, kpis: {
+        now: cnt('now'), todo: cnt('todo'), nonum: cnt('nonum'),
+        today: deals.filter(function (d) { return d.suivi && d.suivi.date === today; }).length,
+        rdvMois: deals.filter(function (d) { return /rdv/i.test((d.suivi && d.suivi.statut) || d.etape || '') && String(d.maj || '').slice(0, 7) === mkk; }).length
+      } };
+    };
+
     // ---- Accueil « Aujourd'hui » : tâches, RDV et chiffres du jour (réel) ----
     A.today = function (role) {
       var db = S.db, inv = db.opcoInv || [], dos = db.opcoDos || {}, links = db.links || {}, clients = db.clients || [], rdv = db.rdv || [], audits = db.audits || [], reclam = db.reclam || [], imports = db.imports || [], dossiers = db.dossiers || {};
