@@ -1,4 +1,4 @@
-const O=require('./obf/package');const fs=require('fs');
+const O=require('javascript-obfuscator');const fs=require('fs');
 const [,,inp,out,level]=process.argv;
 let html=fs.readFileSync(inp,'utf8');
 const base={compact:true,controlFlowFlattening:false,deadCodeInjection:false,identifierNamesGenerator:'mangled',

@@ -1,0 +1,1046 @@
+<title>PPA Pilot Maquette</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap">
+<style>
+/* Mise en page : barre latérale fixe (objets du CRM) + zone de travail ; chaque écran = titre, action principale à droite, filtres, contenu */
+:root{
+ --bg:#F5F6F8;--panel:#FFFFFF;--ink:#16213A;--ink2:#4A5468;--mut:#7B8396;--line:#E3E6EC;--line2:#EEF0F4;
+ --accent:#2456C7;--accent-ink:#FFFFFF;--accent-soft:#E8EEFB;--side:#14213D;--side-ink:#C9D2E6;--side-on:#FFFFFF;
+ --good:#0B7A0B;--good-bg:#E6F4E6;--warn:#8A5A00;--warn-bg:#FFF3D6;--bad:#B42828;--bad-bg:#FCE9E9;--info:#2456C7;--info-bg:#E8EEFB;
+ --s1:#2a78d6;--s2:#eb6834;--s3:#1baf7a;--chart-surface:#FFFFFF;--grid:#EEF0F4;--axis:#c3c2b7;--axis-ink:#7B8396;
+ --f-ui:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;--f-head:"Space Grotesk","Inter",system-ui,sans-serif;
+ --r:10px;--shadow:0 1px 2px rgba(22,33,58,.06),0 2px 8px rgba(22,33,58,.05);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+ --bg:#0F141E;--panel:#171D2A;--ink:#E8ECF4;--ink2:#B5BDCD;--mut:#8C94A6;--line:#2A3243;--line2:#222A39;
+ --accent:#6E9BFF;--accent-ink:#0F141E;--accent-soft:#1D2A47;--side:#0B101A;--side-ink:#9AA6BF;--side-on:#FFFFFF;
+ --good:#5FD25F;--good-bg:#15301A;--warn:#F5C14B;--warn-bg:#33290F;--bad:#FF8A8A;--bad-bg:#3A1A1C;--info:#8DB0FF;--info-bg:#1D2A47;
+ --s1:#3987e5;--s2:#d95926;--s3:#199e70;--chart-surface:#171D2A;--grid:#232B3A;--axis:#383835;--axis-ink:#8C94A6;
+ --shadow:0 1px 2px rgba(0,0,0,.3);color-scheme:dark}}
+:root[data-theme="dark"]{
+ --bg:#0F141E;--panel:#171D2A;--ink:#E8ECF4;--ink2:#B5BDCD;--mut:#8C94A6;--line:#2A3243;--line2:#222A39;
+ --accent:#6E9BFF;--accent-ink:#0F141E;--accent-soft:#1D2A47;--side:#0B101A;--side-ink:#9AA6BF;--side-on:#FFFFFF;
+ --good:#5FD25F;--good-bg:#15301A;--warn:#F5C14B;--warn-bg:#33290F;--bad:#FF8A8A;--bad-bg:#3A1A1C;--info:#8DB0FF;--info-bg:#1D2A47;
+ --s1:#3987e5;--s2:#d95926;--s3:#199e70;--chart-surface:#171D2A;--grid:#232B3A;--axis:#383835;--axis-ink:#8C94A6;
+ --shadow:0 1px 2px rgba(0,0,0,.3);color-scheme:dark}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font:14px/1.45 var(--f-ui);-webkit-font-smoothing:antialiased}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
+.app{display:grid;grid-template-columns:232px minmax(0,1fr);min-height:100%}
+/* barre latérale */
+.side{background:var(--side);color:var(--side-ink);padding:16px 12px;display:flex;flex-direction:column;gap:4px;position:sticky;top:0;height:100vh;overflow:auto;padding-left:max(12px,env(safe-area-inset-left,0px))}
+.brand{display:flex;align-items:center;gap:10px;padding:4px 8px 16px;color:var(--side-on)}
+.brand i{width:32px;height:32px;border-radius:8px;background:#2456C7;display:grid;place-items:center;font:700 12px var(--f-head);font-style:normal;letter-spacing:.06em;color:#fff}
+.brand b{font:600 16px var(--f-head)}
+.brand small{display:block;font-size:11px;color:var(--side-ink);font-weight:500}
+.navgrp{font-size:10.5px;text-transform:uppercase;letter-spacing:.09em;color:#6F7C99;padding:12px 10px 4px}
+.nav{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;color:var(--side-ink);text-decoration:none;font-weight:500;border:0;background:none;width:100%;text-align:left;cursor:pointer}
+.nav svg{width:18px;height:18px;flex:none;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.nav:hover{background:rgba(255,255,255,.06);color:#fff}
+.nav[aria-current="page"]{background:rgba(110,155,255,.18);color:#fff}
+.nav .cnt{margin-left:auto;font-size:11px;font-weight:600;background:rgba(255,255,255,.12);border-radius:999px;padding:1px 7px}
+.nav .cnt.hot{background:#B42828;color:#fff}
+.side .me{margin-top:auto;display:flex;align-items:center;gap:10px;padding:10px;border-top:1px solid rgba(255,255,255,.08)}
+.av{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-size:11px;font-weight:700;flex:none;background:var(--accent-soft);color:var(--accent)}
+.side .me .av{background:#2B3A5E;color:#fff}
+.side .me small{display:block;font-size:11px}
+/* zone principale */
+main{min-width:0;display:flex;flex-direction:column}
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--panel);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:12px;padding-block:10px;padding-left:max(24px,env(safe-area-inset-left,0px));padding-right:max(24px,env(safe-area-inset-right,0px))}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--panel)}
+.search{flex:1;min-width:0;max-width:520px;display:flex;align-items:center;gap:8px;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:7px 10px;color:var(--mut)}
+.search input{border:0;background:none;outline:none;flex:1;min-width:0;width:100%}
+.search kbd{font:11px var(--f-ui);border:1px solid var(--line);border-radius:4px;padding:0 5px}
+.demo{font-size:11.5px;font-weight:600;color:var(--warn);background:var(--warn-bg);border-radius:999px;padding:3px 10px;white-space:nowrap}
+.view{padding-block:22px 48px;padding-left:max(24px,env(safe-area-inset-left,0px));padding-right:max(24px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:16px;min-width:0}
+.vh{display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap}
+.vh h1{font:600 24px/1.2 var(--f-head);margin:0;text-wrap:balance}
+.vh p{margin:2px 0 0;color:var(--ink2)}
+.vh .sp{flex:1}
+.btn{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--panel);border-radius:8px;padding:7px 12px;font-weight:600;cursor:pointer;white-space:nowrap}
+.btn:hover{border-color:var(--mut)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.primary:hover{filter:brightness(1.07)}
+.btn.sm{padding:4px 9px;font-size:12.5px}
+.btn svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);min-width:0}
+.panel>h2,.ph{font:600 15px var(--f-head);margin:0;padding:14px 16px 10px;display:flex;align-items:center;gap:8px}
+.ph .sp{flex:1}
+.ph small{font:500 12px var(--f-ui);color:var(--mut)}
+/* pastilles d'état */
+.pill{display:inline-flex;align-items:center;gap:5px;border-radius:999px;padding:2px 9px;font-size:12px;font-weight:600;white-space:nowrap}
+.pill::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+.p-good{color:var(--good);background:var(--good-bg)}.p-warn{color:var(--warn);background:var(--warn-bg)}.p-bad{color:var(--bad);background:var(--bad-bg)}.p-info{color:var(--info);background:var(--info-bg)}.p-mut{color:var(--ink2);background:var(--line2)}
+/* vues enregistrées + filtres */
+.tabs{display:flex;gap:2px;border-bottom:1px solid var(--line);overflow-x:auto}
+.tab{border:0;background:none;padding:9px 12px;font-weight:600;color:var(--ink2);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap}
+.tab[aria-selected="true"]{color:var(--accent);border-bottom-color:var(--accent)}
+.tab .n{font-weight:500;color:var(--mut);margin-left:4px}
+.filters{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:12px 16px;border-bottom:1px solid var(--line2)}
+.filters select,.filters input{border:1px solid var(--line);background:var(--panel);border-radius:8px;padding:6px 9px;min-width:0}
+.filters .sp{flex:1}
+.filters small{color:var(--mut)}
+/* tableaux */
+.tw{overflow-x:auto}
+table.t{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+.t th{text-align:left;font-size:11.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--mut);font-weight:600;padding:9px 16px;border-bottom:1px solid var(--line);white-space:nowrap}
+.t td{padding:11px 16px;border-bottom:1px solid var(--line2);white-space:nowrap}
+.t tr.click{cursor:pointer}.t tr.click:hover td{background:var(--accent-soft)}
+.t .num{text-align:right}
+.t .name{font-weight:600;color:var(--ink)}
+.t .sub{display:block;font-size:12px;color:var(--mut);font-weight:400}
+.who{display:inline-flex;align-items:center;gap:7px}.who .av{width:24px;height:24px;font-size:10px}
+.late{color:var(--bad);font-weight:600}
+/* aujourd'hui */
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
+.kpi{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px}
+.kpi small{display:block;color:var(--ink2);font-weight:500}
+.kpi b{display:block;font:600 24px/1.25 var(--f-head);margin-top:4px;font-variant-numeric:tabular-nums}
+.kpi .d{font-size:12px;font-weight:600;margin-top:2px}
+.grid2{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:16px}
+.list{list-style:none;margin:0;padding:0}
+.list li{display:flex;gap:12px;align-items:flex-start;padding:11px 16px;border-top:1px solid var(--line2)}
+.list li .grow{flex:1;min-width:0}
+.list li b{font-weight:600}
+.list li small{display:block;color:var(--mut)}
+.chk{width:18px;height:18px;border:2px solid var(--line);border-radius:5px;flex:none;margin-top:2px;cursor:pointer;background:none;padding:0}
+.chk[aria-pressed="true"]{background:var(--good);border-color:var(--good)}
+li.done b{text-decoration:line-through;color:var(--mut)}
+.drop{margin-top:8px;border:1.5px dashed var(--line);border-radius:8px;padding:8px 10px;text-align:center;color:var(--mut);font-size:12.5px}
+.drop.over{border-color:var(--accent);background:var(--accent-soft);color:var(--accent)}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px}
+.fres{padding-top:8px;margin-top:8px;border-top:1px solid var(--line2)}.fres:first-of-type{border-top:0;margin-top:0}
+.fres small{color:var(--mut)}
+.miss{margin:8px 0 0;color:var(--warn);font-weight:600;font-size:13px}
+@media (pointer:coarse){.drop{display:none}}
+.start{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.step{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:16px;display:flex;gap:14px;align-items:flex-start;min-width:0}
+.step.first{border:2px solid var(--accent)}
+.step .no{width:30px;height:30px;border-radius:50%;flex:none;display:grid;place-items:center;font:700 14px var(--f-head);background:var(--accent-soft);color:var(--accent)}
+.step.first .no{background:var(--accent);color:var(--accent-ink)}
+.step.ok{border-color:var(--good)}.step.ok .no{background:var(--good);color:#fff}
+.step .grow{flex:1;min-width:0}
+.step h3{margin:0;font:600 16px var(--f-head)}
+.step p{margin:3px 0 10px;color:var(--ink2)}
+.step .acts{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.res{margin-top:10px;border-radius:8px;background:var(--bg);border:1px solid var(--line2);padding:10px 12px}
+.res ul{margin:6px 0 0;padding-left:18px}.res li{margin:2px 0}
+.res b{font-weight:600}
+@media (max-width:900px){.start{grid-template-columns:1fr}}
+.time{font-weight:700;font-variant-numeric:tabular-nums;width:48px;flex:none;color:var(--accent)}
+/* fiche entreprise 3 colonnes */
+.crumb{display:flex;gap:6px;align-items:center;color:var(--mut);font-size:13px}
+.crumb a{color:var(--accent);text-decoration:none;cursor:pointer;font-weight:600}
+.rec{display:grid;grid-template-columns:300px minmax(0,1fr) 300px;gap:16px;align-items:start}
+.idc{padding:18px 16px}
+.idc .logo{width:52px;height:52px;border-radius:12px;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;font:700 18px var(--f-head)}
+.idc h1{font:600 20px/1.25 var(--f-head);margin:10px 0 2px}
+.idc .acts{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px}
+.props{padding:4px 16px 14px}
+.prop{padding:8px 0;border-top:1px solid var(--line2)}
+.prop small{display:block;font-size:11.5px;color:var(--mut);text-transform:uppercase;letter-spacing:.06em;font-weight:600}
+.prop span{display:block;margin-top:2px;overflow-wrap:anywhere}
+.tl{list-style:none;margin:0;padding:6px 16px 16px;position:relative}
+.tl li{display:flex;gap:12px;padding:10px 0;position:relative}
+.tl li::before{content:"";position:absolute;left:15px;top:42px;bottom:-10px;width:2px;background:var(--line2)}
+.tl li:last-child::before{display:none}
+.tl .ic{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;flex:none;background:var(--line2);color:var(--ink2)}
+.tl .ic svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.tl .ic.call{background:var(--info-bg);color:var(--info)}.tl .ic.rdv{background:var(--good-bg);color:var(--good)}.tl .ic.money{background:var(--warn-bg);color:var(--warn)}
+.tl .grow{flex:1;min-width:0;background:var(--bg);border:1px solid var(--line2);border-radius:8px;padding:9px 12px}
+.tl .grow b{font-weight:600}.tl .grow small{float:right;color:var(--mut);font-size:12px;margin-left:8px}
+.tl .grow p{margin:4px 0 0;color:var(--ink2)}
+.composer{display:flex;gap:8px;padding:12px 16px;border-bottom:1px solid var(--line2)}
+.composer input{flex:1;min-width:0;border:1px solid var(--line);border-radius:8px;padding:8px 10px;background:var(--panel)}
+.assoc{padding:0 0 6px}
+.assoc h3{font:600 13.5px var(--f-head);margin:0;padding:12px 16px 6px;display:flex;align-items:center}
+.assoc h3 .n{color:var(--mut);font:500 12px var(--f-ui);margin-left:6px}
+.assoc h3 .sp{flex:1}
+.mini{margin:0 12px 8px;border:1px solid var(--line2);border-radius:8px;padding:9px 11px;display:flex;flex-direction:column;gap:3px}
+.mini b{font-weight:600}.mini small{color:var(--mut)}
+.mini .row{display:flex;justify-content:space-between;align-items:center;gap:8px}
+/* affaires (colonnes) */
+.board{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(230px,1fr);gap:12px;overflow-x:auto;padding-bottom:8px}
+.col{background:var(--line2);border-radius:var(--r);display:flex;flex-direction:column;min-height:360px}
+.col header{padding:12px 12px 8px}
+.col header b{font:600 14px var(--f-head);display:flex;align-items:center;gap:6px}
+.col header b .n{font:600 12px var(--f-ui);color:var(--mut)}
+.col header small{color:var(--ink2);font-variant-numeric:tabular-nums}
+.col .cards{display:flex;flex-direction:column;gap:8px;padding:0 8px 10px;flex:1}
+.col.over{outline:2px dashed var(--accent);outline-offset:-4px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px 11px;cursor:grab;box-shadow:var(--shadow)}
+.card b{font-weight:600;display:block}
+.card .m{display:flex;justify-content:space-between;align-items:center;margin-top:8px;gap:8px}
+.card .amt{font-weight:700;font-variant-numeric:tabular-nums}
+.card small{color:var(--mut)}
+.card select{margin-top:8px;width:100%;border:1px solid var(--line);border-radius:6px;padding:4px;background:var(--panel);font-size:12px}
+.card.dragging{opacity:.5}
+/* rapports */
+.rgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.rgrid .wide{grid-column:1/-1}
+.chart{padding:4px 12px 8px;position:relative}
+.chart svg{width:100%;height:auto;display:block;overflow:visible}
+.legend{display:flex;gap:14px;flex-wrap:wrap;padding:0 16px 4px;font-size:12.5px;color:var(--ink2)}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+.tip{position:absolute;pointer-events:none;background:var(--panel);border:1px solid var(--line);box-shadow:0 4px 16px rgba(0,0,0,.14);border-radius:8px;padding:8px 10px;font-size:12.5px;min-width:150px;z-index:3;font-variant-numeric:tabular-nums}
+.tip b{display:block;margin-bottom:4px}
+.tip .r{display:flex;justify-content:space-between;gap:12px}
+.tip .r i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:6px}
+details.tbl{padding:0 16px 14px}
+details.tbl summary{cursor:pointer;color:var(--accent);font-weight:600;font-size:12.5px}
+details.tbl table{margin-top:8px}
+details.tbl .t td,details.tbl .t th{padding:6px 10px}
+.note{font-size:12.5px;color:var(--ink2);padding:0 16px 14px;margin:0}
+.empty{padding:28px 16px;text-align:center;color:var(--ink2)}
+.empty b{display:block;color:var(--ink);font:600 16px var(--f-head);margin-bottom:4px}
+.toast{position:fixed;right:max(20px,env(safe-area-inset-right,0px));bottom:calc(20px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:10px 14px;border-radius:8px;font-weight:600;box-shadow:0 6px 20px rgba(0,0,0,.2);z-index:20}
+@media (max-width:1180px){.rec{grid-template-columns:280px minmax(0,1fr)}.rec .right{grid-column:1/-1}}
+@media (max-width:900px){
+ .app{grid-template-columns:1fr}
+ .side{position:sticky;top:0;height:auto;flex-direction:row;overflow-x:auto;padding:8px max(12px,env(safe-area-inset-left,0px));gap:2px;z-index:6}
+ .brand,.navgrp,.side .me{display:none}
+ .nav{width:auto;white-space:nowrap;padding:7px 10px}
+ .top{position:static}
+ .grid2,.rgrid,.rec{grid-template-columns:1fr}
+ .demo{display:none}
+}
+@media (max-width:520px){#create{font-size:0;gap:0;padding:9px}#create svg{width:18px;height:18px}.search kbd{display:none}.top{gap:8px}.view{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}.top{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}.vh h1{font-size:21px}}
+
+/* ===== Menu latéral clair ===== */
+.ngroup{display:flex;flex-direction:column;gap:2px;padding:6px 0}
+.ngroup+.flow,.flow+.ngroup{border-top:1px solid var(--line);margin-top:6px;padding-top:12px}
+.flow{position:relative;padding:6px 0 4px}
+.flowlab{font-size:11px;font-weight:600;color:var(--mut);padding:0 10px 6px}
+.fstep{position:relative}
+.fstep::before{content:"";position:absolute;left:18px;top:30px;height:calc(100% - 20px);width:2px;background:var(--line);z-index:0}
+.fstep:last-child::before{display:none}
+.fstep .nav{position:relative;z-index:1}
+.fstep .nav svg{background:var(--panel);border-radius:4px}
+.side .me{display:flex;align-items:center;gap:10px}
+.side .me .grow{flex:1;min-width:0}.side .me b{display:block;font-weight:600}
+.gearb{width:32px;height:32px;border-radius:8px;display:grid;place-items:center;color:var(--ink2)}
+.gearb:hover,.gearb[aria-current="page"]{background:var(--line2);color:var(--ink)}
+.gearb svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round}
+body.nv-light .side .me b{color:var(--ink)}
+@media (max-width:900px){.flowlab,.fstep::before{display:none}.flow,.ngroup{flex-direction:row;display:flex;padding:0;border:0!important;margin:0!important}.side .me{display:flex;margin:0 0 0 auto;border:0;padding:0 4px}.side .me .av,.side .me .grow{display:none}}
+/* ===== Variantes de menu (anciennes) ===== */
+.navpick{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(14px + env(safe-area-inset-bottom,0px));z-index:30;display:flex;align-items:center;gap:4px;background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:4px;box-shadow:0 6px 24px rgba(0,0,0,.16);max-width:calc(100% - 32px);overflow-x:auto}
+.navpick span{font-size:12px;font-weight:600;color:var(--mut);padding:0 8px 0 10px;white-space:nowrap}
+.navpick button{border:0;background:none;border-radius:999px;padding:6px 12px;font-weight:600;font-size:12.5px;cursor:pointer;white-space:nowrap;color:var(--ink2)}
+.navpick button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+.view{padding-bottom:84px}
+/* B : latéral clair */
+body.nv-light .side{background:var(--panel);border-right:1px solid var(--line);color:var(--ink2)}
+body.nv-light .brand{color:var(--ink)}body.nv-light .brand small{color:var(--mut)}
+body.nv-light .nav{color:var(--ink2)}
+body.nv-light .nav:hover{background:var(--line2);color:var(--ink)}
+body.nv-light .nav[aria-current="page"]{background:var(--accent-soft);color:var(--accent)}
+body.nv-light .nav .cnt{background:var(--line2);color:var(--ink2)}body.nv-light .nav .cnt.hot{background:var(--bad);color:#fff}
+body.nv-light .navgrp{color:var(--mut)}
+body.nv-light .side .me{border-top-color:var(--line)}body.nv-light .side .me .av{background:var(--accent-soft);color:var(--accent)}
+/* C : rail compact */
+@media (min-width:901px){
+body.nv-rail .app{grid-template-columns:84px minmax(0,1fr)}
+body.nv-rail .side{padding:12px 8px;align-items:stretch}
+body.nv-rail .brand{justify-content:center;padding:4px 0 12px}body.nv-rail .brand div{display:none}
+body.nv-rail .navgrp{padding:4px 0;font-size:0;border-top:1px solid rgba(255,255,255,.08);margin:4px 10px}
+body.nv-rail .nav{flex-direction:column;gap:4px;padding:8px 2px;font-size:10.5px;text-align:center;position:relative}
+body.nv-rail .nav svg{width:20px;height:20px}
+body.nv-rail .nav .cnt{position:absolute;top:2px;right:10px;margin:0;padding:0 5px;font-size:10px}
+body.nv-rail .side .me{justify-content:center;padding:10px 0}body.nv-rail .side .me div{display:none}
+/* D : barre du haut */
+body.nv-top .app{grid-template-columns:1fr;grid-template-rows:auto 1fr}
+body.nv-top .side{position:sticky;top:env(safe-area-inset-top,0px);height:auto;flex-direction:row;align-items:center;gap:2px;padding:8px max(24px,env(safe-area-inset-right,0px)) 8px max(24px,env(safe-area-inset-left,0px));z-index:8;overflow-x:auto}
+body.nv-top .brand{padding:0 16px 0 0}body.nv-top .brand small{display:none}
+body.nv-top .navgrp{display:none}
+body.nv-top .nav{width:auto;white-space:nowrap;padding:8px 11px}
+body.nv-top .nav[href="#parametres"] span{display:none}
+body.nv-top .side .me{margin:0 0 0 auto;border-top:0;padding:0 0 0 12px}body.nv-top .side .me div{display:none}
+body.nv-top .top{position:static}
+}
+
+/* ===== Barre latérale compacte, élargie au survol ===== */
+@media (min-width:901px){
+ .app{grid-template-columns:68px minmax(0,1fr)}
+ .side{width:68px;z-index:20;overflow:hidden;transition:width .18s ease,box-shadow .18s ease;padding-left:10px;padding-right:10px}
+ .side:hover,.side:focus-within{width:240px;box-shadow:8px 0 28px rgba(22,33,58,.14)}
+ .side .nav span,.side .brand div,.side .flowlab,.side .me .grow,.side .gearb{opacity:0;transition:opacity .12s ease;white-space:nowrap}
+ .side:hover .nav span,.side:hover .brand div,.side:hover .flowlab,.side:hover .me .grow,.side:hover .gearb,
+ .side:focus-within .nav span,.side:focus-within .brand div,.side:focus-within .flowlab,.side:focus-within .me .grow,.side:focus-within .gearb{opacity:1}
+ .side .brand{padding:4px 2px 14px}
+ .side .nav{padding:9px 13px;position:relative}
+ .side .nav .cnt{position:absolute;left:28px;top:3px;margin:0;padding:0 5px;font-size:10px;line-height:16px}
+ .side:hover .nav .cnt,.side:focus-within .nav .cnt{position:static;margin-left:auto;padding:1px 7px;font-size:11px}
+ .flowlab{height:18px;overflow:hidden}
+ .fstep::before{left:21px}
+ .side .me{padding:10px 4px}
+}
+@media (prefers-reduced-motion:reduce){.side{transition:none}}
+
+.dprog{display:grid;grid-template-columns:1fr auto;gap:6px 10px;align-items:center;width:100%;margin-top:12px;border:1px solid var(--line);background:var(--bg);border-radius:10px;padding:10px 12px;text-align:left;cursor:pointer}
+.dprog:hover{border-color:var(--accent)}
+.dprog b{display:block;font-weight:600}.dprog small{color:var(--ink2);font-size:12px}
+.dprog i{grid-column:1/-1;height:6px;border-radius:3px;background:linear-gradient(90deg,var(--accent) var(--p),var(--line2) var(--p))}
+.dprog em{font-style:normal;font-weight:600;color:var(--accent);font-size:12.5px;grid-row:1;grid-column:2}
+.dwrap{display:flex;flex-direction:column;gap:12px;padding:14px}
+.dsec{border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.dsec.mine{border-color:var(--accent)}
+.dsec header{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--bg);border-bottom:1px solid var(--line2)}
+.dsec header h3{margin:0;font:600 14.5px var(--f-head)}
+.dsec header .no{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;background:var(--accent-soft);color:var(--accent);font-weight:700;font-size:12px;flex:none}
+.dsec header .sp{flex:1}.dsec header small{color:var(--mut);font-variant-numeric:tabular-nums}
+.dgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;padding:12px 14px}
+.opt{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--line);border-radius:8px;padding:10px;cursor:pointer}
+.opt:has(input:checked){border-color:var(--accent);background:var(--accent-soft)}
+.opt b{display:block;font-weight:600}.opt small{color:var(--ink2)}
+.fld{display:flex;flex-direction:column;gap:4px;font-size:12px;font-weight:600;color:var(--ink2)}
+.fld input,.fld select,.dsec td input{border:1px solid var(--line);border-radius:8px;padding:7px 9px;background:var(--panel);font-weight:400;color:var(--ink);min-width:0;width:100%}
+.plist{list-style:none;margin:0;padding:0}
+.plist li{display:flex;gap:10px;align-items:center;padding:9px 14px;border-top:1px solid var(--line2)}
+.plist li:first-child{border-top:0}
+.plist .st{width:22px;height:22px;border-radius:50%;border:2px solid var(--line);display:grid;place-items:center;font-size:12px;font-weight:700;flex:none;color:var(--good)}
+.plist li.ok .st{border-color:var(--good);background:var(--good-bg)}
+.plist .grow{flex:1;min-width:0}.plist b{font-weight:600;display:block}.plist small{color:var(--mut)}
+.btn.ghost{border-color:transparent;background:none;color:var(--ink2)}
+.dbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:12px 14px;border-bottom:1px solid var(--line2)}.dbar small{color:var(--mut)}
+.dsec .drop{margin:8px 14px 12px}
+.rgrid9{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;padding:12px 14px}
+.rchk{display:flex;gap:8px;align-items:center;font-size:13px;padding:6px 8px;border-radius:6px}
+.rchk:has(input:checked){background:var(--good-bg)}
+@media (max-width:700px){.dgrid,.rgrid9{grid-template-columns:1fr}}
+
+.agtg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.agtg button{border:0;background:var(--panel);padding:5px 11px;font-weight:600;font-size:12.5px;cursor:pointer;color:var(--ink2)}
+.agtg button.on{background:var(--accent);color:var(--accent-ink)}
+.aglegend{display:flex;gap:16px;flex-wrap:wrap;padding:8px 16px;border-bottom:1px solid var(--line2);font-size:12px;color:var(--ink2)}
+.aglegend i{display:inline-block;width:14px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px;border:1px solid var(--line)}
+.lg-rdv{background:var(--panel)}.lg-aud{background:repeating-linear-gradient(135deg,var(--panel) 0 3px,var(--line) 3px 5px)}.lg-sess{background:var(--line2)}
+.ev.aud{background:repeating-linear-gradient(135deg,var(--panel) 0 6px,var(--line2) 6px 9px)}
+.wk-ad{border-left:1px solid var(--line2);border-bottom:1px solid var(--line);padding:3px;display:flex;flex-direction:column;gap:3px;min-height:30px}
+.wk-ad .pill{border:0;cursor:pointer;font-size:11px;white-space:normal;text-align:left;line-height:1.25;padding:3px 7px;border-radius:6px}
+.wk-t.ad{transform:none;padding-top:8px;border-bottom:1px solid var(--line)}
+.month{display:grid;grid-template-columns:repeat(7,minmax(100px,1fr));min-width:720px}
+.mh{padding:8px;font-weight:600;font-size:12.5px;color:var(--ink2);border-bottom:1px solid var(--line);text-align:center}
+.mc{min-height:96px;border-right:1px solid var(--line2);border-bottom:1px solid var(--line2);padding:5px;display:flex;flex-direction:column;gap:3px}
+.mc.out{background:var(--bg)}.mc.today{background:color-mix(in srgb,var(--accent) 5%,transparent)}
+.mc .dn{font-weight:600;font-size:12px;color:var(--ink2)}.mc.today .dn{color:var(--accent)}
+.mi{font-size:11px;border-radius:4px;padding:2px 5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;background:var(--line2);border-left:3px solid var(--mut)}
+.mi-rdv{border-left-color:var(--s2);background:var(--panel)}.mi-aud{border-left-color:var(--s1);background:repeating-linear-gradient(135deg,var(--panel) 0 6px,var(--line2) 6px 9px)}.mi-sess{border-left-color:var(--s3)}.mi-conf{border-left-color:var(--warn);background:var(--warn-bg)}
+.more{font-size:11px;color:var(--mut);font-weight:600}
+
+.dhead{display:flex;gap:14px;flex-wrap:wrap;align-items:flex-start;border:1px solid var(--line);border-radius:10px;padding:12px 14px;background:var(--bg)}
+.dhead .grow{flex:1;min-width:220px;display:flex;flex-direction:column;gap:4px;align-items:flex-start}
+.dhead small{color:var(--mut);font-weight:600;font-size:11.5px;text-transform:uppercase;letter-spacing:.06em}
+.dhead b{font:600 16px var(--f-head)}
+.miss{flex:1;min-width:220px;font-size:13px}.miss b{font-weight:600;color:var(--warn)}.miss ul{margin:4px 0 0;padding-left:18px}
+.chain{list-style:none;margin:0;padding:0;display:flex;gap:0;overflow-x:auto}
+.chain li{flex:1;min-width:92px;position:relative;padding:18px 4px 0;text-align:center;font-size:11.5px;color:var(--mut)}
+.chain li span{position:absolute;top:4px;left:50%;width:12px;height:12px;margin-left:-6px;border-radius:50%;background:var(--panel);border:2px solid var(--line);z-index:1}
+.chain li::before{content:"";position:absolute;top:9px;left:0;right:0;height:2px;background:var(--line)}
+.chain li.done span{background:var(--good);border-color:var(--good)}.chain li.done::before{background:var(--good)}
+.chain li.cur span{background:var(--accent);border-color:var(--accent);box-shadow:0 0 0 4px var(--accent-soft)}
+.chain li b{display:block;font-weight:600;color:var(--ink2)}.chain li.cur b{color:var(--accent)}
+.dsec header .pill{flex:none}
+.dsub{padding:10px 14px 4px;font-size:12px;font-weight:600;color:var(--ink2);text-transform:uppercase;letter-spacing:.05em}
+.dgrid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;padding:12px 14px}
+.dfoot{display:flex;gap:10px;align-items:center;padding:12px 14px;border-top:1px solid var(--line2)}.dfoot small{color:var(--mut)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+@media (max-width:900px){.dgrid3{grid-template-columns:1fr}}
+
+.vgrp .ph{gap:10px}.vgrp .gdot{width:10px;height:10px;border-radius:50%;background:var(--gc);flex:none}
+.vgrp{border-left:4px solid var(--gc)}
+.vacts{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;align-items:center}
+.minif{display:inline-flex;gap:4px;align-items:center;font-size:12px;font-weight:600;color:var(--ink2)}
+.minif input,.vacts input{border:1px solid var(--line);border-radius:6px;padding:4px 6px;background:var(--panel);font-size:12px;min-width:0}
+.callrow{flex-wrap:wrap}.callrow .ctel{width:220px;flex:none}.callrow .ctel b{display:block;font-variant-numeric:tabular-nums}.callrow .vacts{flex-basis:100%}
+.scr{margin-top:6px;font-size:12.5px}.scr summary{cursor:pointer;color:var(--accent);font-weight:600}.scr p{margin:4px 0;color:var(--ink2)}
+.fgrp .t{table-layout:fixed}.fgrp .t td:first-child,.fgrp .t th:first-child{width:30%}.fgrp .t td:nth-child(3),.fgrp .t th:nth-child(3){width:13%}.fgrp .t td:nth-child(4),.fgrp .t th:nth-child(4){width:22%}.fgrp .t td{white-space:normal}
+.fgrp{border:0;border-top:1px solid var(--line);border-left:4px solid var(--gc)}
+.improw{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:10px 16px;border-top:1px solid var(--line2);background:var(--bg)}.improw small{color:var(--mut)}
+.jours{display:flex;flex-wrap:wrap;gap:4px;font-weight:400}.jours span{background:var(--line2);border-radius:6px;padding:3px 7px;font-size:12px;color:var(--ink)}
+.salx td{padding:0 16px 8px;border-bottom:1px solid var(--line)}.salx summary{cursor:pointer;color:var(--accent);font-weight:600;font-size:12.5px}
+.sw{position:relative;width:38px;height:22px;flex:none}.sw input{opacity:0;position:absolute;inset:0;margin:0;cursor:pointer}.sw i{position:absolute;inset:0;border-radius:999px;background:var(--line)}.sw i::after{content:"";position:absolute;left:3px;top:3px;width:16px;height:16px;border-radius:50%;background:#fff;transition:left .15s}.sw input:checked+i{background:var(--good)}.sw input:checked+i::after{left:19px}
+.emg{display:grid;grid-template-columns:240px 340px minmax(0,1fr);gap:14px;padding:14px;align-items:start}
+.qr{width:180px;height:180px;margin:0 auto;display:block}
+.phone{border:8px solid var(--ink);border-radius:22px;padding:14px;display:flex;flex-direction:column;gap:10px;margin:0 12px 14px;background:var(--panel)}
+.phone canvas{width:100%;height:auto;border:1.5px dashed var(--line);border-radius:8px;background:#fff;touch-action:none;cursor:crosshair}
+.emt td,.emt th{white-space:normal}.sigc{width:30%;height:58px;vertical-align:middle}.sigc img{display:block;max-height:40px;max-width:100%;background:#fff;border-radius:4px}.sigc small{font-size:10.5px;color:var(--mut)}
+@media (max-width:1200px){.emg{grid-template-columns:1fr 1fr}.emw{grid-column:1/-1}}@media (max-width:700px){.emg{grid-template-columns:1fr}}
+.btn.openb{color:var(--accent);border-color:var(--accent);background:var(--accent-soft);font-weight:700}
+.btn.openb:hover{background:var(--accent);color:var(--accent-ink)}
+tr[data-rowopen]{cursor:pointer}tr[data-rowopen]:hover td{background:var(--accent-soft)}
+.lsearch{display:flex;align-items:center;gap:8px;margin:10px 16px;padding:7px 10px;border:1px solid var(--line);border-radius:8px;background:var(--panel);color:var(--mut)}
+.view>.lsearch{margin:0}
+.lsearch input{flex:1;min-width:0;border:0;outline:none;background:none;color:var(--ink)}
+.lsearch small{white-space:nowrap}
+/* ===== Agenda ===== */
+.agbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:12px 16px;border-bottom:1px solid var(--line2)}
+.agbar .sp{flex:1}
+.chip{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line);background:var(--panel);border-radius:999px;padding:5px 11px;font-weight:600;font-size:12.5px;cursor:pointer;color:var(--ink2)}
+.chip i{width:10px;height:10px;border-radius:3px}
+.chip[aria-pressed="false"]{opacity:.45}
+.chip[aria-pressed="false"] i{background:var(--line)!important}
+.week{display:grid;grid-template-columns:52px repeat(6,minmax(110px,1fr));min-width:760px;position:relative}
+.wk-h{position:sticky;top:0;background:var(--panel);z-index:2;padding:8px 6px;border-bottom:1px solid var(--line);font-weight:600;font-size:12.5px;text-align:center}
+.wk-h small{display:block;font-weight:500;color:var(--mut)}
+.wk-h.today{color:var(--accent)}
+.wk-t{font-size:11px;color:var(--mut);text-align:right;padding-right:8px;transform:translateY(-7px);font-variant-numeric:tabular-nums}
+.wk-col{position:relative;border-left:1px solid var(--line2)}
+.wk-col .slot{height:24px;border-bottom:1px solid var(--line2)}
+.wk-col .slot:nth-child(2n){border-bottom-color:var(--line)}
+.wk-col.today{background:color-mix(in srgb,var(--accent) 4%,transparent)}
+.book .wk-col .slot:hover{background:var(--accent-soft);cursor:pointer}
+.ev{position:absolute;left:3px;right:3px;border-radius:6px;padding:4px 7px;font-size:11.5px;line-height:1.3;overflow:hidden;border-left:3px solid;background:var(--panel);box-shadow:var(--shadow);color:var(--ink);cursor:pointer;z-index:1}
+.ev b{display:block;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ev small{color:var(--ink2)}
+.ev.sess{background:var(--line2)}
+.now{position:absolute;left:0;right:0;height:2px;background:var(--bad);z-index:3}
+.now::before{content:"";position:absolute;left:-4px;top:-3px;width:8px;height:8px;border-radius:50%;background:var(--bad)}
+.bookf{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;padding:12px 16px;background:var(--accent-soft);border-bottom:1px solid var(--line)}
+.bookf label{display:flex;flex-direction:column;gap:3px;font-size:12px;font-weight:600;color:var(--ink2)}
+.bookf input,.bookf select{border:1px solid var(--line);border-radius:8px;padding:6px 9px;background:var(--panel);min-width:0}
+.aglist{list-style:none;margin:0;padding:0}
+.aglist h4{margin:0;padding:10px 16px 4px;font:600 13px var(--f-head)}
+.aglist li{display:flex;gap:10px;padding:8px 16px;border-top:1px solid var(--line2);align-items:center}
+.aglist li i{width:10px;height:10px;border-radius:3px;flex:none}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+<div class="app">
+ <nav class="side" id="side" aria-label="Navigation principale"></nav>
+ <main>
+  <div class="top">
+   <label class="search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input id="q" placeholder="Rechercher une entreprise (dans tout le CRM)…" aria-label="Recherche générale : ouvre Entreprises"><kbd>/</kbd></label>
+   <span class="demo">Maquette · données fictives</span>
+   <span style="flex:1"></span>
+   <button class="btn primary" id="create"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Créer</button>
+  </div>
+  <div class="view" id="view"></div>
+ </main>
+</div>
+<div class="toast" id="toast" hidden></div>
+<div class="navpick" role="group" aria-label="Voir le menu d’un autre rôle"><span>Voir le menu de :</span><button data-rl="direction">Direction</button><button data-rl="admin">Administration</button><button data-rl="terrain">Commercial</button><button data-rl="phoneuse">Téléprospection</button><button data-rl="formateur">Formateur</button></div>
+
+<script>
+/* ===== Icônes ===== */
+const I={
+ today:'<path d="M4 7h16M4 12h16M4 17h10"/>',
+ ent:'<path d="M4 20V8l6-4v16M10 20V10h10v10M4 20h16M14 14h2M14 17h2"/>',
+ deal:'<rect x="3" y="4" width="5" height="16" rx="1.5"/><rect x="10" y="4" width="5" height="11" rx="1.5"/><rect x="17" y="4" width="4" height="7" rx="1.5"/>',
+ call:'<path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a1 1 0 0 1-1 1A16 16 0 0 1 4 5a1 1 0 0 1 1-1z"/>',
+ form:'<path d="M2 9l10-5 10 5-10 5z"/><path d="M6 11v5c3.5 2.4 8.5 2.4 12 0v-5"/>',
+ fin:'<path d="M17 6.5A6.5 6.5 0 1 0 17 17.5"/><path d="M4 10h9M4 14h9"/>',
+ rep:'<path d="M5 20V10M12 20V4M19 20v-7"/>',
+ qual:'<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M8.5 12l2.5 2.5 4.5-5"/>',
+ gear:'<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/>',
+ note:'<path d="M5 4h10l4 4v12H5z"/><path d="M9 12h6M9 16h4"/>',
+ rdv:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',
+ mail:'<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3.5 6.5l8.5 6 8.5-6"/>',
+ money:'<path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/>',
+ check:'<path d="M5 12.5l4.5 4.5L19 7.5"/>'
+};
+const ic=(k,s='')=>`<svg viewBox="0 0 24 24" ${s}>${I[k]}</svg>`;
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const eur=n=>new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR',maximumFractionDigits:0}).format(n);
+const keur=n=>(Math.round(n/100)/10).toLocaleString('fr-FR')+' k€';
+const ini=n=>n.split(/\s+/).map(w=>w[0]).join('').slice(0,2).toUpperCase();
+
+/* ===== Données fictives ===== */
+const TEAM={RA:'Rachid A.',ME:'Mehdi S.',AY:'Ayoub B.',SA:'Sarah L.',JO:'Jordan K.'};
+const STAGES=[['prospect','Prospect','p-mut'],['rdv','RDV fixé','p-info'],['signe','Signé','p-good'],['opco','Dossier OPCO','p-warn'],['formation','En formation','p-info'],['paye','Payé','p-good']];
+const ST=Object.fromEntries(STAGES.map(s=>[s[0],s]));
+const OPCOS=['Suivi des dossiers','Facturation','Paiements'];
+const OPCO_RES={
+ 'Suivi des dossiers':{n:88,items:[['<b>2 nouveaux accords</b> : sessions confirmées, convocations à envoyer',0],['<b>3 formations terminées sans facture</b> : 3 800 € à facturer (tâche créée pour Ayoub)',1],['<b>4 dossiers en attente d’accord depuis plus de 45 jours</b> : relance proposée',1],['79 dossiers sans changement',0]]},
+ 'Facturation':{n:69,items:[['<b>11 factures passées en « Payé »</b>',0],['<b>1 facture en « Attente pièces règlement »</b> depuis 112 jours',1],['5 factures transmises, délai normal',0],['52 lignes sans changement',0]]},
+ 'Paiements':{n:53,items:[['<b>1 nouveau virement</b> du 10 novembre : 17 300 € pour 11 factures',0],['Rapproché automatiquement avec vos factures',0]]}
+};
+const ENTS=[
+ {id:1,nom:'Snack Le Beffroi',ville:'Douai',act:'Restauration rapide',stage:'opco',com:'ME',tel:'SA',last:-2,next:'Relancer AKTO (dossier déposé)',nextD:0,ca:2100,siret:'912 345 678 00014',gerant:'Karim D.',phone:'06 12 34 56 78',opco:'AKTO',eff:'3 à 5 salariés',alim:'À améliorer (06/09/2026)',adr:'14 rue de Bellain, 59500 Douai'},
+ {id:2,nom:'Boucherie des Halles',ville:'Lens',act:'Boucherie',stage:'rdv',com:'ME',tel:'SA',last:-1,next:'RDV de présentation',nextD:1,ca:1890},
+ {id:3,nom:'Pizzeria Bella Vita',ville:'Valenciennes',act:'Restauration rapide',stage:'signe',com:'RA',tel:'',last:-4,next:'Envoyer la convention',nextD:-1,ca:2450},
+ {id:4,nom:'Salon Élégance',ville:'Arras',act:'Coiffure',stage:'prospect',com:'',tel:'SA',last:-9,next:'Rappeler la gérante',nextD:-3,ca:0},
+ {id:5,nom:'Kebab Istanbul Grill',ville:'Hénin-Beaumont',act:'Restauration rapide',stage:'formation',com:'ME',tel:'SA',last:0,next:'Session HACCP en cours',nextD:2,ca:1120},
+ {id:6,nom:'Boulangerie Saint-Pierre',ville:'Cambrai',act:'Boulangerie',stage:'paye',com:'RA',tel:'',last:-21,next:'Questionnaire à 3 mois',nextD:12,ca:1400},
+ {id:7,nom:'Tacos Factory',ville:'Denain',act:'Restauration rapide',stage:'rdv',com:'ME',tel:'SA',last:-3,next:'RDV de signature',nextD:2,ca:2100},
+ {id:8,nom:'Épicerie du Marché',ville:'Somain',act:'Commerce alimentaire',stage:'prospect',com:'',tel:'SA',last:-14,next:'Premier appel',nextD:0,ca:0},
+ {id:9,nom:'Burger Station',ville:'Lille',act:'Restauration rapide',stage:'opco',com:'RA',tel:'SA',last:-6,next:'Pièces manquantes OPCO',nextD:-2,ca:1360},
+ {id:10,nom:'Coiff’ & Style',ville:'Béthune',act:'Coiffure',stage:'signe',com:'ME',tel:'',last:-1,next:'Planifier la session',nextD:3,ca:1950},
+ {id:11,nom:'Le Fournil Douaisien',ville:'Sin-le-Noble',act:'Boulangerie',stage:'paye',com:'ME',tel:'SA',last:-30,next:'Proposer étiquetage',nextD:20,ca:700},
+ {id:12,nom:'Chicken Express',ville:'Waziers',act:'Restauration rapide',stage:'formation',com:'RA',tel:'SA',last:-1,next:'Émargements à compléter',nextD:0,ca:2100}
+];
+ENTS.forEach(e=>{e.siret=e.siret||'9'+String(10000000+e.id*7654321).slice(0,8)+' 000'+(10+e.id);e.gerant=e.gerant||['Mme Dupont','M. Benali','M. Lefebvre','Mme Haddad','M. Moreau'][e.id%5];e.phone=e.phone||'07 '+String(10+e.id*3).padStart(2,'0')+' 45 '+String(20+e.id).padStart(2,'0')+' 90';e.opco=e.opco||(e.act==='Coiffure'||e.act==='Boulangerie'||e.act==='Boucherie'?'OPCO EP':'AKTO');e.eff=e.eff||['1 ou 2 salariés','3 à 5 salariés','6 à 9 salariés'][e.id%3];e.alim=e.alim||(e.act.match(/Restau|Bouch|Boul/)?['Satisfaisant','À améliorer','Très satisfaisant'][e.id%3]:'—');e.adr=e.adr||(10+e.id)+' rue de la République, '+e.ville});
+const dLabel=n=>n===0?"aujourd'hui":n===1?'demain':n===-1?'hier':n>0?'dans '+n+' j':'il y a '+(-n)+' j';
+
+/* ===== Navigation ===== */
+/* Menu : Accueil, puis le parcours client dans l’ordre (trouver → vendre → former → encaisser), puis les références */
+const NAV=[
+ ['', [['aujourdhui','Accueil','today'],['agenda','Agenda','rdv']]],
+ ['flow',[['appels','Prospection','call','Trouver des clients'],['affaires','Ventes','deal','Signer'],['formations','Formations','form','Former'],['finances','Facturation','fin','Encaisser',3]]],
+ ['', [['entreprises','Entreprises','ent'],['rapports','Pilotage','rep']]]
+];
+const ROLES={
+ direction:{nom:'Rachid A.',lab:'Direction',ini:'RA',v:['aujourdhui','agenda','appels','affaires','formations','finances','entreprises','rapports']},
+ admin:{nom:'Ayoub B.',lab:'Gestion administrative',ini:'AB',v:['aujourdhui','agenda','appels','formations','finances','entreprises','rapports']},
+ terrain:{nom:'Mehdi S.',lab:'Commercial',ini:'MS',v:['aujourdhui','agenda','appels','affaires','entreprises','finances']},
+ phoneuse:{nom:'Sarah L.',lab:'Téléprospection',ini:'SL',v:['aujourdhui','agenda','appels','finances']},
+ formateur:{nom:'Jordan K.',lab:'Formateur',ini:'JK',v:['aujourdhui','agenda','appels','formations','entreprises']}
+};
+let role='direction';try{role=localStorage.getItem('ppa-role')||'direction'}catch(e){}
+const navLabel=k=>(role==='terrain'||role==='phoneuse')&&k==='finances'?'Mes commissions':null;
+let route=(location.hash||'').slice(1)||'aujourdhui';
+const ui={entView:'all',entStage:'',entCom:'',entQ:'',rec:1,recTab:'dos',dos:{},repTab:'treso',finTab:'opco',done:{}};
+function drawSide(){
+ const base=route.startsWith('fiche')?'entreprises':route==='qualiopi'?'rapports':route,me=ROLES[role],ok=k=>me.v.includes(k);
+ const item=([k,l,i,sub,n])=>`<a class="nav" href="#${k}" ${base===k?'aria-current="page"':''}>${ic(i)}<span>${navLabel(k)||l}</span>${n&&role!=='terrain'&&role!=='phoneuse'?`<span class="cnt hot" title="${n} points en retard">${n}</span>`:''}</a>`;
+ document.getElementById('side').innerHTML=`<div class="brand"><i>PPA</i><div><b>PPA Pilot</b><small>Formation · Douai</small></div></div>`+
+ NAV.map(([g,items])=>{const L=items.filter(x=>ok(x[0]));if(!L.length)return '';
+  if(g==='flow')return `<div class="flow"><div class="flowlab">Parcours client</div>${L.map(it=>`<div class="fstep">${item(it)}</div>`).join('')}</div>`;
+  return `<div class="ngroup">${L.map(item).join('')}</div>`}).join('')+
+ `<div class="me"><span class="av">${me.ini}</span><div class="grow"><b>${me.nom}</b><small>${me.lab}</small></div><a class="gearb" href="#parametres" aria-label="Paramètres" ${route==='parametres'?'aria-current="page"':''}>${ic('gear')}</a></div>`;
+}
+function go(r){location.hash=r}
+window.addEventListener('hashchange',()=>{route=location.hash.slice(1)||'aujourdhui';render();window.scrollTo(0,0)});
+function toast(t){const el=document.getElementById('toast');el.textContent=t;el.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>el.hidden=true,2200)}
+document.getElementById('create').onclick=()=>{if(route==='aujourdhui'&&['direction','admin'].includes(role)){const f=document.getElementById('bOpco');if(f)f.click()}else toast('Maquette : ouvrirait « Créer une entreprise, une affaire, une tâche… »')};
+function topBtn(){const b=document.getElementById('create');b.innerHTML=route==='aujourdhui'&&['direction','admin'].includes(role)?'<svg viewBox="0 0 24 24"><path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 16v4h16v-4"/></svg>Importer les exports AKTO':'<svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Créer'}
+document.addEventListener('keydown',e=>{if(e.key==='/'&&document.activeElement.tagName!=='INPUT'){e.preventDefault();document.getElementById('q').focus()}});
+document.getElementById('q').addEventListener('input',e=>{ui.entQ=e.target.value;if(route!=='entreprises')go('entreprises');else render()});
+
+const V={};
+function render(){drawSide();topBtn();const k=route.startsWith('fiche')?'fiche':route;(V[k]||V.aujourdhui)();}
+const $v=()=>document.getElementById('view');
+const head=(t,p,act)=>`<div class="vh"><div><h1>${t}</h1>${p?`<p>${p}</p>`:''}</div><span class="sp"></span>${act||''}</div>`;
+const who=c=>c?`<span class="who"><span class="av">${c}</span>${esc(TEAM[c])}</span>`:'<span style="color:var(--mut)">Non attribué</span>';
+const stPill=s=>`<span class="pill ${ST[s][2]}">${ST[s][1]}</span>`;
+
+/* ===== Aujourd'hui ===== */
+V.aujourdhui=()=>{
+ const tasks=role==='terrain'?[['c1','Contre-appel à faire · Tacos Factory','RDV le 19/11/2026 à 14:00 · 07 31 45 27 90',7,'p-warn','Attention'],['c2','RDV passé · résultat à saisir · Boucherie des Halles','Signé, en réflexion ou refusé : à indiquer',2,'p-bad','Urgent'],['c3','Dossier à compléter · Snack Le Beffroi','Manque : CNI du gérant, date de l’audit offert',1,'p-warn','Attention'],['c4','Renouvellement à relancer · Boulangerie Saint-Pierre','Signée il y a 11 mois · commission 15 %',6,'p-bad','Urgent']]
+  :role==='phoneuse'?[['p1','Rappeler · Snack O’Délices','Relance prévue le 19/11/2026',0,'p-warn','Attention'],['p2','Fiches à appeler','3 fiches jamais contactées · liste Veille 11/10',0,'p-info','Aujourd’hui']]
+  :[['t1','Déposer la demande de prise en charge AKTO','Snack Le Beffroi · PMS · début le 08/12/2026',1,'p-bad','Urgent'],['t2','AKTO attend les pièces de règlement — facture 026','Dossier 2607AF006164 · 1 750 € · déposée le 30/07/2026',0,'p-bad','Urgent'],['t3','Session terminée non facturée','Capsule Corp · PMS · terminée le 22/09/2026 · 2 400 €',0,'p-bad','Urgent'],['t4','Facture F-2026-061 impayée depuis 28 j','AKTO · 1 400 € · relance niveau 2',0,'p-warn','Attention'],['t5','AKTO sans réponse depuis 27 jours','Youfood · dossier 2610AF041033',0,'p-warn','Attention'],['t6','Envoyer les convocations','Chicken Express · 3 stagiaires · HACCP le 18/11/2026',12,'p-warn','Attention']];
+ const up='<svg viewBox="0 0 24 24"><path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 16v4h16v-4"/></svg>';
+ const o=ui.impOpco,c=ui.impCalls;
+ $v().innerHTML=head('Bonjour '+ROLES[role].nom.split(' ')[0],'Jeudi 19 novembre · 5 tâches, 3 rendez-vous')+
+ `<div class="start" aria-label="Pour bien démarrer la journée">
+  <section class="step first ${o&&o.files.length>=3?'ok':''}"><span class="no">${o&&o.files.length>=3?ic('check','width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"'):'1'}</span><div class="grow">
+   <h3>Mettre à jour AKTO</h3>
+   <p>${o?'Mis à jour à '+o.h+' par Rachid A.':'Dernière mise à jour : lundi 16 novembre par Ayoub B. · 3 jours'}</p>
+   <div class="acts"><button class="btn ${o?'':'primary'}" id="bOpco">${up}${o?'Importer de nouveaux exports':'Importer les 3 exports AKTO'}</button><small style="color:var(--mut)">Les 3 exports AKTO en une fois : suivi des dossiers, facturation, paiements. Le CRM reconnaît chaque fichier à ses colonnes.</small></div>
+   <div class="drop" id="dOpco">ou glissez les fichiers ici</div>
+   ${o?`<div class="res"><div class="chips">${OPCOS.map(n=>{const f=o.files.find(x=>x.o===n);return `<span class="pill ${f?'p-good':'p-warn'}">${n} ${f?'reçu':'manquant'}</span>`}).join('')}</div>
+    ${o.files.map(f=>`<div class="fres"><b>${esc(f.name)}</b> <small>· ${f.o} · ${f.r.n} lignes</small><ul>${f.r.items.map(i=>`<li${i[1]?' style="color:var(--bad)"':''}>${i[0]}</li>`).join('')}</ul></div>`).join('')}
+    ${o.files.length<3?`<p class="miss">Il manque ${OPCOS.filter(n=>!o.files.some(x=>x.o===n)).join(' et ')} : ajoutez le fichier quand vous l’avez.</p>`:''}</div>`:''}
+  </div></section>
+  <section class="step ${c?'ok':''}"><span class="no">${c?ic('check','width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"'):'2'}</span><div class="grow">
+   <h3>Alimenter les appels</h3>
+   <p>${c?'Liste importée à '+c.h+', attribuée à Sarah L.':'Il reste 23 fiches à appeler dans la file de Sarah L.'}</p>
+   <div class="acts"><button class="btn ${o&&!c?'primary':''}" id="bCalls">${up}Importer des listes d’appels</button><small style="color:var(--mut)">Plusieurs fichiers à la fois : PDF de veille commerciale, Excel ou CSV</small></div>
+   <div class="drop" id="dCalls">ou glissez les fichiers ici</div>
+   ${c?`<div class="res"><b>${c.files.length} fichier${c.files.length>1?'s':''} · ${c.tot.lus} entrées lues → <span style="color:var(--good)">${c.tot.nv} nouvelles fiches</span></b>
+    ${c.files.map(f=>`<div class="fres"><b>${esc(f.name)}</b> <small>· ${f.pdf?'PDF lu automatiquement':'tableur'} · ${f.lus} ${f.pdf?'établissements':'lignes'}</small><ul><li><b>${f.nv} nouvelles fiches</b>${f.pdf?' prêtes à appeler':''}</li>${f.dbl?`<li>${f.dbl} doublons ignorés (déjà clients ou déjà appelés)</li>`:''}${f.sans?`<li>${f.sans} ${f.sans>1?'fiches sans téléphone, mises':'fiche sans téléphone, mise'} de côté</li>`:''}${f.pdf?`<li style="color:var(--bad)"><b>${f.chk} exclus</b> : opposition à la prospection signalée dans le PDF, ajoutés à la liste « Ne pas appeler »</li><li>Pour chaque fiche : priorité, résultat AlimConfiance, accroche, 3 questions et points à éviter</li>`:''}</ul></div>`).join('')}</div>`:''}
+  </div></section>
+ </div>
+ <input type="file" id="fOpco" accept=".xlsx,.xls,.csv" multiple hidden><input type="file" id="fCalls" accept=".pdf,.xlsx,.xls,.csv" multiple hidden>
+ <div class="kpis">
+  <div class="kpi"><small>À encaisser</small><b>${eur(18640)}</b><div class="d" style="color:var(--bad)">dont ${eur(6220)} en retard</div></div>
+  <div class="kpi"><small>Signé ce mois</small><b>${eur(9860)}</b><div class="d" style="color:var(--good)">+18 % vs octobre</div></div>
+  <div class="kpi"><small>RDV cette semaine</small><b>7</b><div class="d" style="color:var(--ink2)">4 Mehdi · 3 Rachid</div></div>
+  <div class="kpi"><small>Stagiaires en salle</small><b>6</b><div class="d" style="color:var(--ink2)">2 sessions en cours</div></div>
+ </div>
+ <div class="grid2">
+  <section class="panel"><div class="ph">À faire<span class="sp"></span><small>Triées par urgence</small></div><ul class="list">${tasks.map(([k,t,s,e,c,l])=>`<li class="${ui.done[k]?'done':''}"><button class="chk" data-done="${k}" aria-pressed="${!!ui.done[k]}" aria-label="Marquer comme fait"></button><div class="grow"><b>${esc(t)}</b><small>${esc(s)}</small></div><span class="pill ${c}">${l}</span>${e?`<button class="btn sm" data-open="${e}">Ouvrir</button>`:''}</li>`).join('')}</ul></section>
+  <section class="panel"><div class="ph">Rendez-vous du jour</div><ul class="list">
+   <li><span class="time">09:30</span><div class="grow"><b>Session HACCP · jour 2</b><small>Chicken Express · salle Rachid · 3 stagiaires</small></div></li>
+   <li><span class="time">14:00</span><div class="grow"><b>RDV signature · Tacos Factory</b><small>Denain · Mehdi</small></div></li>
+   <li><span class="time">16:30</span><div class="grow"><b>Appel gérant · Boucherie des Halles</b><small>Préparation du RDV de demain · Mehdi</small></div></li>
+  </ul>
+  <div class="ph" style="padding-top:6px">Alertes</div><ul class="list">
+   <li><span class="pill p-bad">Retard</span><div class="grow"><b>3 factures OPCO non payées depuis plus de 45 jours</b><small>${eur(6220)} au total</small></div><button class="btn sm" data-go="finances">Voir</button></li>
+   <li><span class="pill p-warn">Qualiopi</span><div class="grow"><b>2 questionnaires à 3 mois à envoyer</b><small>Indicateur 30</small></div></li>
+  </ul></section>
+ </div>`;
+ $v().querySelectorAll('[data-done]').forEach(b=>b.onclick=()=>{ui.done[b.dataset.done]=!ui.done[b.dataset.done];V.aujourdhui()});
+ const now=()=>new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+ const doOpco=fl=>{if(!fl.length)return;const used=new Set(),files=[...fl].slice(0,6).map((f,i)=>{const n=f.name.toLowerCase();let o=/suivi|dossier/.test(n)?'Suivi des dossiers':/paiement|virement/.test(n)?'Paiements':/factur/.test(n)?'Facturation':null;if(!o||used.has(o))o=OPCOS.find(x=>!used.has(x))||'AKTO';used.add(o);return {name:f.name,o,r:OPCO_RES[o]}});ui.impOpco={files,h:now()};V.aujourdhui();toast(files.length+' export'+(files.length>1?'s':'')+' AKTO importé'+(files.length>1?'s':''))};
+ const doCalls=fl=>{if(!fl.length)return;const files=[...fl].map((f,i)=>{const pdf=/\.pdf$/i.test(f.name),lus=pdf?13:40+i*12,dbl=pdf?0:3+i%3,sans=pdf?0:2,chk=pdf?5:0;return {name:f.name,pdf,lus,dbl,sans,chk,nv:lus-dbl-sans-chk}});const tot={lus:files.reduce((a,f)=>a+f.lus,0),nv:files.reduce((a,f)=>a+f.nv,0)};ui.impCalls={files,tot,h:now()};V.aujourdhui();toast(tot.nv+' fiches ajoutées aux appels')};
+ const wire=(btn,inp,zone,fn)=>{const i=document.getElementById(inp),z=document.getElementById(zone);document.getElementById(btn).onclick=()=>{i.value='';i.click()};i.onchange=()=>fn(i.files);
+  z.ondragover=e=>{e.preventDefault();z.classList.add('over')};z.ondragleave=()=>z.classList.remove('over');z.ondrop=e=>{e.preventDefault();z.classList.remove('over');fn(e.dataTransfer.files)}};
+ wire('bOpco','fOpco','dOpco',doOpco);wire('bCalls','fCalls','dCalls',doCalls);
+ if(!['direction','admin'].includes(role)){const f=$v().querySelector('.step.first');if(f)f.remove();const st=$v().querySelector('.start');if(st)st.style.gridTemplateColumns='1fr'}
+ bindOpen();
+};
+function bindOpen(){$v().querySelectorAll('tr[data-rowopen]').forEach(r=>r.onclick=e=>{if(e.target.closest('button,input,select,label,a'))return;ui.recTab='dos';go('fiche-'+r.dataset.rowopen)});$v().querySelectorAll('[data-open]').forEach(b=>b.onclick=()=>{ui.rec=+b.dataset.open;ui.recTab='dos';go('fiche-'+b.dataset.open)});$v().querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>go(b.dataset.go))}
+
+
+/* ===== Agenda : tous les RDV et sessions de l’équipe ===== */
+const AGP={RA:{n:'Rachid A.',c:'--s1'},ME:{n:'Mehdi S.',c:'--s2'},JO:{n:'Jordan K.',c:'--s3'}};
+const DAYS=[['Lun.','16 nov.'],['Mar.','17 nov.'],['Mer.','18 nov.'],['Jeu.','19 nov.'],['Ven.','20 nov.'],['Sam.','21 nov.']],TODAY_I=3,H0=8,H1=19;
+const EVS=[
+ {d:0,s:'09:00',e:'12:00',w:'RA',t:'Session HACCP · J1',x:'Chicken Express · 3 stagiaires',k:'sess'},
+ {d:0,s:'14:30',e:'15:30',w:'ME',t:'RDV · Boucherie des Halles',x:'Lens',ent:2},
+ {d:1,s:'09:00',e:'17:00',w:'JO',t:'Session Pizzaiolo',x:'Bella Vita · 2 stagiaires',k:'sess'},
+ {d:1,s:'10:00',e:'11:00',w:'ME',t:'RDV · Tacos Factory',x:'Denain',ent:7},
+ {d:1,s:'14:00',e:'16:00',w:'RA',t:'Audit offert · Boulangerie Saint-Pierre',x:'Cambrai · audit à 3 mois',k:'aud',ent:6},
+ {d:2,s:'11:00',e:'12:00',w:'RA',t:'RDV · Burger Station',x:'Lille',ent:9},
+ {d:2,s:'14:00',e:'16:00',w:'ME',t:'Audit offert · Le Fournil Douaisien',x:'Sin-le-Noble · audit à 3 mois',k:'aud',ent:11},
+ {d:2,s:'15:00',e:'16:00',w:'ME',t:'RDV · Royal Tacos',x:'Lens'},
+ {d:3,s:'09:30',e:'17:00',w:'RA',t:'Session HACCP · J2',x:'Chicken Express · 3 stagiaires',k:'sess',ent:12},
+ {d:3,s:'14:00',e:'15:00',w:'ME',t:'RDV signature · Tacos Factory',x:'Denain',ent:7},
+ {d:3,s:'16:30',e:'17:00',w:'ME',t:'Appel gérant',x:'Boucherie des Halles'},
+ {d:4,s:'10:00',e:'11:00',w:'ME',t:'RDV · Boucherie des Halles',x:'Lens'},
+ {d:4,s:'14:00',e:'15:00',w:'RA',t:'RDV · Snack O’Délices',x:'Douai'},
+ {d:4,s:'09:00',e:'11:00',w:'ME',t:'Audit offert · Kebab Istanbul Grill',x:'Hénin-Beaumont · avant formation',k:'aud',ent:5},
+ {d:5,s:'10:00',e:'11:30',w:'ME',t:'RDV · Coiff’ & Style',x:'Béthune',ent:10}
+];
+const ALLDAY=[{d:1,t:'Échéance facture F-2026-071 · AKTO',c:'p-warn',go:'finances'},{d:4,t:'Questionnaire 3 mois · Boulangerie Saint-Pierre',c:'p-info',go:'fiche-6'},{d:5,t:'Relance OPCO · Burger Station',c:'p-bad',go:'fiche-9'}];
+const MONTH=[[2,'Audit · Snack O’Délices','aud'],[5,'Session PMS · Youfood','sess'],[9,'Audit · Royal Tacos','aud'],[12,'RDV · Salon Élégance','rdv'],[23,'Session Étiquetage · O Délices','sess'],[26,'Audit · Burger Station','aud'],[30,'Échéance Qualiopi · indicateur 30','conf']];
+const hm=t=>{const[a,b]=t.split(':').map(Number);return a*60+b},SLOT=24/30;
+function monthHTML(){const first=6;/* 1er novembre 2026 = dimanche → décalage lundi */const cells=[];for(let i=0;i<35;i++){const dn=i-first+1;cells.push(dn)}
+ return `<div class="tw"><div class="month">${['Lun.','Mar.','Mer.','Jeu.','Ven.','Sam.','Dim.'].map(d=>`<div class="mh">${d}</div>`).join('')}${cells.map(dn=>{const ok=dn>=1&&dn<=30,wk=dn>=16&&dn<=21;const L=ok?[...MONTH.filter(m=>m[0]===dn).map(m=>[m[1],m[2]]),...(wk?EVS.filter(e=>e.d===dn-16&&ui.agWho[e.w]).map(e=>[e.s+' '+e.t,e.k||'rdv']):[])]:[];return `<div class="mc ${dn===19?'today':''} ${ok?'':'out'}"><span class="dn">${ok?dn:''}</span>${L.slice(0,3).map(([t,k])=>`<span class="mi mi-${k}">${esc(t)}</span>`).join('')}${L.length>3?`<span class="more">+${L.length-3}</span>`:''}</div>`}).join('')}</div></div>`}
+/* place côte à côte seulement les rendez-vous qui se chevauchent */
+function layDay(L){L=L.slice().sort((a,b)=>hm(a.s)-hm(b.s)||hm(b.e)-hm(a.e));let cl=[],end=-1;const out=[];const flush=()=>{const n=Math.max(1,...cl.map(x=>x._c+1));cl.forEach(x=>x._n=n);cl=[]};
+ L.forEach(e=>{if(hm(e.s)>=end&&cl.length){flush()}const cols=[];cl.forEach(x=>{if(hm(x.e)>hm(e.s))cols[x._c]=1});let c=0;while(cols[c])c++;e._c=c;cl.push(e);end=Math.max(end,hm(e.e));out.push(e)});if(cl.length)flush();return out}
+V.agenda=()=>{
+ if(!ui.agWho)ui.agWho={RA:true,ME:true,JO:role!=='phoneuse'};
+ if(ui.agRole!==role){ui.agRole=role;ui.agWho=role==='terrain'?{RA:false,ME:true,JO:false}:role==='formateur'?{RA:false,ME:false,JO:true}:{RA:true,ME:true,JO:role!=='phoneuse'};ui.book=null}
+ const canBook=role==='phoneuse'||role==='direction'||role==='terrain';
+ const sub=role==='phoneuse'?'Agenda de toute l’équipe commerciale · cliquez sur un créneau libre pour fixer un RDV':role==='terrain'?'Vos rendez-vous · affichez ceux des autres pour éviter les doublons':'Rendez-vous commerciaux et sessions de formation de toute l’équipe';
+ const narrow=matchMedia('(max-width:700px)').matches,show=e=>ui.agWho[e.w];
+ const cols=DAYS.map((d,i)=>`<div class="wk-col ${i===TODAY_I?'today':''}" data-d="${i}">${Array.from({length:(H1-H0)*2},(_,k)=>`<div class="slot" data-d="${i}" data-m="${H0*60+k*30}"></div>`).join('')}
+  ${layDay(EVS.filter(e=>e.d===i&&show(e))).map(e=>{const top=(hm(e.s)-H0*60)*SLOT,h=Math.max(22,(hm(e.e)-hm(e.s))*SLOT-2);const ln=e._c,wd=100/e._n;return `<div class="ev ${e.k||''}" ${e.ent?`data-open="${e.ent}"`:''} style="top:${top}px;height:${h}px;left:calc(${ln*wd}% + 2px);width:calc(${wd}% - 4px);right:auto;border-left-color:var(${AGP[e.w].c})" title="${esc(e.t)} · ${AGP[e.w].n}"><b>${esc(e.t)}</b><small>${e.s}–${e.e} · ${esc(e.x)}</small></div>`}).join('')}
+  ${i===TODAY_I?`<div class="now" style="top:${(11*60-H0*60)*SLOT}px" aria-label="Maintenant"></div>`:''}</div>`).join('');
+ $v().innerHTML=head('Agenda',sub,(canBook?'<button class="btn primary" id="agBook">Fixer un RDV</button>':'')+'<button class="btn">Semaine du 16 nov.</button>')+
+ `<section class="panel"><div class="agbar"><span style="font-weight:600;color:var(--ink2);font-size:12.5px">Afficher :</span>${Object.entries(AGP).map(([k,p])=>`<button class="chip" data-who="${k}" aria-pressed="${!!ui.agWho[k]}"><i style="background:var(${p.c})"></i>${p.n}${k==='JO'?' · formations':''}</button>`).join('')}<span class="sp"></span><span class="agtg" role="group" aria-label="Affichage"><button class="${ui.agV!=='mois'?'on':''}" data-agv="sem">Semaine</button><button class="${ui.agV==='mois'?'on':''}" data-agv="mois">Mois</button></span></div>
+ <div class="aglegend"><span><i class="lg-rdv"></i>Rendez-vous</span><span><i class="lg-aud"></i>Audit offert (2 h)</span><span><i class="lg-sess"></i>Session de formation</span><span>Cliquez sur un rendez-vous ou un audit pour ouvrir le dossier</span></div>
+ ${ui.book?`<div class="bookf"><label>Jour<select id="bkD">${DAYS.map((d,i)=>`<option value="${i}" ${ui.book.d==i?'selected':''}>${d[0]} ${d[1]}</option>`).join('')}</select></label><label>Heure<input id="bkH" type="time" value="${ui.book.h}" step="1800"></label><label>Commercial<select id="bkW">${['ME','RA'].map(k=>{const busy=EVS.some(e=>e.w===k&&e.d==ui.book.d&&hm(e.s)<hm(ui.book.h)+60&&hm(e.e)>hm(ui.book.h));return `<option value="${k}" ${busy?'disabled':''} ${ui.book.w===k?'selected':''}>${AGP[k].n}${busy?' · occupé':''}</option>`}).join('')}</select></label><label style="flex:1;min-width:180px">Entreprise<input id="bkE" placeholder="Nom de l’établissement" value="${esc(ui.book.e||'')}"></label><button class="btn primary" id="bkOk">Valider le RDV</button><button class="btn" id="bkNo">Annuler</button></div>`:''}
+ ${ui.agV==='mois'?monthHTML():narrow?`<div class="aglist">${DAYS.map((d,i)=>{const L=EVS.filter(e=>e.d===i&&show(e)).sort((a,b)=>hm(a.s)-hm(b.s));return `<h4 style="${i===TODAY_I?'color:var(--accent)':''}">${d[0]} ${d[1]}</h4>${L.map(e=>`<li><i style="background:var(${AGP[e.w].c})"></i><span style="font-variant-numeric:tabular-nums;font-weight:600;width:44px">${e.s}</span><div style="min-width:0"><b>${esc(e.t)}</b><small style="display:block;color:var(--mut)">${AGP[e.w].n} · ${esc(e.x)}</small></div></li>`).join('')||'<li><small style="color:var(--mut)">Aucun rendez-vous</small></li>'}`}).join('')}</div>`
+ :`<div class="tw ${canBook?'book':''}"><div class="week"><div></div>${DAYS.map((d,i)=>`<div class="wk-h ${i===TODAY_I?'today':''}">${d[0]}<small>${d[1]}</small></div>`).join('')}
+  <div class="wk-t ad">Jour</div>${DAYS.map((_,i)=>`<div class="wk-ad">${ALLDAY.filter(a=>a.d===i).map(a=>`<button class="pill ${a.c}" data-go="${a.go}">${esc(a.t)}</button>`).join('')}</div>`).join('')}
+  <div>${Array.from({length:H1-H0},(_,k)=>`<div class="wk-t" style="height:48px">${String(H0+k).padStart(2,'0')}:00</div>`).join('')}</div>${cols}</div></div>`}</section>`;
+ $v().querySelectorAll('[data-who]').forEach(b=>b.onclick=()=>{ui.agWho[b.dataset.who]=!ui.agWho[b.dataset.who];V.agenda()});
+ $v().querySelectorAll('[data-agv]').forEach(b=>b.onclick=()=>{ui.agV=b.dataset.agv;V.agenda()});
+ $v().querySelectorAll('.ev[data-open]').forEach(ev=>ev.onclick=x=>{x.stopPropagation();ui.recTab='dos';go('fiche-'+ev.dataset.open)});
+ $v().querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>{if(b.dataset.go.startsWith('fiche'))ui.recTab='dos';go(b.dataset.go)});
+ const open=(d,h)=>{const free=['ME','RA'].find(k=>!EVS.some(e=>e.w===k&&e.d==d&&hm(e.s)<hm(h)+60&&hm(e.e)>hm(h)));ui.book={d,h,w:free||'ME',e:''};V.agenda();const i=document.getElementById('bkE');if(i)i.focus()};
+ const ab=document.getElementById('agBook');if(ab)ab.onclick=()=>open(TODAY_I,'15:00');
+ if(canBook)$v().querySelectorAll('.slot').forEach(sl=>sl.onclick=()=>{const m=+sl.dataset.m;open(+sl.dataset.d,String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0'))});
+ const ok=document.getElementById('bkOk');if(ok){
+  ['bkD','bkH'].forEach(id=>document.getElementById(id).onchange=()=>{ui.book.d=+document.getElementById('bkD').value;ui.book.h=document.getElementById('bkH').value;ui.book.e=document.getElementById('bkE').value;V.agenda()});
+  document.getElementById('bkNo').onclick=()=>{ui.book=null;V.agenda()};
+  ok.onclick=()=>{const w=document.getElementById('bkW').value,n=document.getElementById('bkE').value.trim()||'Nouveau prospect',h=document.getElementById('bkH').value,e2=Math.min(hm(h)+60,H1*60);EVS.push({d:ui.book.d,s:h,e:String(Math.floor(e2/60)).padStart(2,'0')+':'+String(e2%60).padStart(2,'0'),w,t:'RDV · '+n,x:'Fixé par '+ROLES[role].nom});ui.agWho[w]=true;ui.book=null;V.agenda();toast('RDV fixé avec '+AGP[w].n+' · mail envoyé au commercial')}}
+};
+/* ===== Entreprises ===== */
+const V112ST={prospect:['Prospect','com'],rdv:['RDV à venir · contre-appel à effectuer','com'],signe:['Signé · dossier à compléter et à valider','com'],formation:['Formations planifiées · à réaliser','form'],opco:['Déposé à l’AKTO · attente d’accord','adm'],paye:['Soldé · décompte des commissions','fin']};
+const v112St=e=>{const x=V112ST[e.stage];return `<span style="white-space:normal;display:block;max-width:240px">${x[0]}</span><span class="pill ${OWNL[x[1]][1]}" style="margin-top:3px">${OWNL[x[1]][0]}</span>`};
+const VIEWS=[['all','Toutes',()=>true],['mine','Mes affaires en cours',e=>e.com==='RA'&&!['paye'].includes(e.stage)],['late','Relances en retard',e=>e.nextD<0],['clients','Clients',e=>['formation','paye'].includes(e.stage)],['prospects','Prospects',e=>['prospect','rdv'].includes(e.stage)]];
+V.entreprises=()=>{
+ const vf=VIEWS.find(v=>v[0]===ui.entView)[2],q=ui.entQ.trim().toLowerCase();
+ const L=ENTS.filter(vf).filter(e=>(!ui.entStage||e.stage===ui.entStage)&&(!ui.entCom||e.com===ui.entCom)&&(!q||(e.nom+' '+e.ville+' '+e.act).toLowerCase().includes(q)));
+ $v().innerHTML=head('Entreprises',ENTS.length+' entreprises · prospects et clients au même endroit','<button class="btn">Importer</button><button class="btn primary">Ajouter une entreprise</button>')+
+ `<section class="panel"><div class="tabs" role="tablist">${VIEWS.map(([k,l,f])=>`<button class="tab" role="tab" aria-selected="${ui.entView===k}" data-v="${k}">${l}<span class="n">${ENTS.filter(f).length}</span></button>`).join('')}</div>
+ <div class="filters"><select id="fSt" aria-label="Étape"><option value="">Toutes les étapes</option>${STAGES.map(s=>`<option value="${s[0]}" ${ui.entStage===s[0]?'selected':''}>${s[1]}</option>`).join('')}</select>
+ <select id="fCo" aria-label="Commercial"><option value="">Tous les commerciaux</option>${['RA','ME'].map(c=>`<option value="${c}" ${ui.entCom===c?'selected':''}>${TEAM[c]}</option>`).join('')}</select>
+ <input id="fQ" placeholder="Nom, ville, activité" value="${esc(ui.entQ)}" aria-label="Filtrer"><span class="sp"></span><small>${L.length} résultat${L.length>1?'s':''}</small></div>
+ <div class="tw"><table class="t"><thead><tr><th>Entreprise</th><th>Étape · dossier chez</th><th>Commercial</th><th>Dernier contact</th><th>Reste à faire</th><th class="num">Montant</th></tr></thead><tbody>
+ ${L.map(e=>`<tr class="click" data-open="${e.id}" tabindex="0"><td><span class="name">${esc(e.nom)}</span><span class="sub">${esc(e.ville)} · ${esc(e.act)}</span></td><td>${v112St(e)}</td><td>${who(e.com)}</td><td>${dLabel(e.last)}</td><td><span class="${e.nextD<0?'late':''}">${esc(e.next)}</span><span class="sub">${dLabel(e.nextD)}</span></td><td class="num">${e.ca?eur(e.ca):'—'}</td></tr>`).join('')||`<tr><td colspan="6"><div class="empty"><b>Aucune entreprise</b>Changez les filtres ou ajoutez une entreprise.</div></td></tr>`}
+ </tbody></table></div></section>`;
+ $v().querySelectorAll('[data-v]').forEach(b=>b.onclick=()=>{ui.entView=b.dataset.v;V.entreprises()});
+ document.getElementById('fSt').onchange=e=>{ui.entStage=e.target.value;V.entreprises()};
+ document.getElementById('fCo').onchange=e=>{ui.entCom=e.target.value;V.entreprises()};
+ const fq=document.getElementById('fQ');fq.oninput=e=>{ui.entQ=e.target.value;const p=e.target.selectionStart;V.entreprises();const n=document.getElementById('fQ');n.focus();n.setSelectionRange(p,p)};
+ $v().querySelectorAll('tr[data-open]').forEach(r=>r.onkeydown=e=>{if(e.key==='Enter')r.click()});
+ bindOpen();
+};
+
+/* ===== Fiche entreprise (3 colonnes) ===== */
+V.fiche=()=>{
+ const id=+route.split('-')[1]||ui.rec,e=ENTS.find(x=>x.id===id)||ENTS[0];
+ const TL=[
+  ['call','call','Appel · Sarah L.','il y a 2 j','Gérant intéressé par le PMS, souhaite former 2 salariés. RDV calé avec Mehdi.'],
+  ['rdv','rdv','RDV de présentation · Mehdi S.','il y a 9 j','Devis HACCP 14 h pour 3 personnes. Signature sur place.'],
+  ['money','money','Dossier OPCO déposé · '+e.opco,'il y a 32 j','Demande de prise en charge n° 2606AF0118. En attente d’accord.'],
+  ['mail','','Convention envoyée par e-mail','il y a 34 j','Convention de formation + règlement intérieur.'],
+  ['note','','Note · Rachid A.','il y a 40 j','Contrôle AlimConfiance « à améliorer » : bon argument pour le PMS.']
+ ];
+ $v().innerHTML=`<div class="crumb"><a data-go="entreprises">Entreprises</a><span>›</span><span>${esc(e.nom)}</span></div>
+ <div class="rec">
+  <aside class="panel">
+   <div class="idc"><div class="logo">${ini(e.nom)}</div><h1>${esc(e.nom)}</h1><div style="color:var(--ink2)">${esc(e.act)} · ${esc(e.ville)}</div><div style="margin-top:8px">${stPill(e.stage)}</div>
+    ${(()=>{const p=dosProg(e.id);return `<button class="dprog" data-rt="dos"><span><b>Étape ${Math.min(p.done+1,10)} / 10 · chez ${OWNL[p.st[1]][0]}</b><small>${p.mine?p.mine+' élément'+(p.mine>1?'s':'')+' à compléter par vous':esc(p.st[0])}</small></span><i style="--p:${Math.round(p.done/9*100)}%"></i><em>Ouvrir</em></button>`})()}
+    <div class="acts"><button class="btn sm" data-t="Appel enregistré">${ic('call')}Appeler</button><button class="btn sm" data-t="Note ajoutée">${ic('note')}Note</button><button class="btn sm" data-t="RDV planifié">${ic('rdv')}RDV</button><button class="btn sm" data-t="E-mail préparé">${ic('mail')}E-mail</button></div></div>
+   <div class="props">
+    ${[['Gérant',e.gerant],['Téléphone',e.phone],['Adresse',e.adr],['SIRET',e.siret],['OPCO',e.opco],['Effectif',e.eff],['AlimConfiance',e.alim],['Commercial',e.com?TEAM[e.com]:'Non attribué'],['Apporté par',e.tel?TEAM[e.tel]:'Commercial']].map(([k,v])=>`<div class="prop"><small>${k}</small><span>${esc(v)}</span></div>`).join('')}
+   </div>
+  </aside>
+  <section class="panel">
+   <div class="tabs" role="tablist">${[['dos','Dossier'],['act','Activité'],['notes','Notes']].map(([k,l])=>`<button class="tab" role="tab" aria-selected="${ui.recTab===k}" data-rt="${k}">${l}</button>`).join('')}</div>
+   ${ui.recTab==='dos'?dosHTML(e):ui.recTab==='act'?`<div class="composer"><input id="nNote" placeholder="Écrire une note, la date et l’auteur sont ajoutés automatiquement" aria-label="Nouvelle note"><button class="btn primary" id="addN">Ajouter</button></div>
+   <ul class="tl">${TL.map(([i,c,t,d,p])=>`<li><span class="ic ${c}">${ic(i)}</span><div class="grow"><small>${d}</small><b>${esc(t)}</b><p>${esc(p)}</p></div></li>`).join('')}</ul>`
+   :`<div class="empty"><b>Les notes apparaissent aussi dans Activité</b>Chaque note garde son auteur et sa date.</div>`}
+  </section>
+  <aside class="panel right">
+   <div class="assoc"><h3>Contacts<span class="n">2</span><span class="sp"></span><button class="btn sm">Ajouter</button></h3>
+    <div class="mini"><b>${esc(e.gerant)}</b><small>Gérant · ${esc(e.phone)}</small></div><div class="mini"><b>Inès R.</b><small>Employée · stagiaire HACCP</small></div></div>
+   <div class="assoc"><h3>Affaires<span class="n">1</span></h3><div class="mini"><div class="row"><b>HACCP 14 h · 3 pers.</b>${stPill(e.stage)}</div><small>${eur(e.ca||2100)} · ${e.com?TEAM[e.com]:'—'}</small></div></div>
+   <div class="assoc"><h3>Sessions<span class="n">1</span></h3><div class="mini"><b>Hygiène alimentaire HACCP</b><small>8 et 9 décembre · salle Rachid · 3 stagiaires</small></div></div>
+   <div class="assoc"><h3>Financement<span class="n">1</span></h3><div class="mini"><div class="row"><b>${esc(e.opco)} · 2606AF0118</b><span class="pill p-warn">Déposé</span></div><small>Déposé il y a 32 j · relance prévue aujourd’hui</small></div></div>
+   <div class="assoc"><h3>Factures<span class="n">0</span></h3><div class="mini"><small>Facture créée à la fin de la formation</small></div></div>
+  </aside>
+ </div>`;
+ bindOpen();
+ $v().querySelectorAll('[data-rt]').forEach(b=>b.onclick=()=>{ui.recTab=b.dataset.rt;V.fiche()});
+ if(ui.recTab==='dos')bindDos(e);
+ $v().querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>toast('Maquette : '+b.dataset.t));
+ const a=document.getElementById('addN');if(a)a.onclick=()=>{const v=document.getElementById('nNote').value.trim();if(!v)return;const ul=$v().querySelector('.tl');ul.insertAdjacentHTML('afterbegin',`<li><span class="ic">${ic('note')}</span><div class="grow"><small>à l’instant</small><b>Note · Rachid A.</b><p>${esc(v)}</p></div></li>`);document.getElementById('nNote').value='';toast('Note ajoutée')};
+};
+
+
+/* ===== Dossier client : processus v112 (10 étapes, qui fait quoi) ===== */
+const CSTEP=[['Signé · dossier à compléter et à valider','com'],['Dossier validé · contre-appel du formateur','form'],['Formations planifiées · à réaliser','form'],['Formé · documents signés à téléverser','form'],['Documents reçus · conformité à contrôler','adm'],['Conforme · à déposer sur le portail AKTO','adm'],['Déposé à l’AKTO · attente d’accord','adm'],['Accordé · factures à éditer','adm'],['Facturé · attente de paiement','adm'],['Soldé · décompte des commissions','fin']];
+const OWNL={com:['Commercial','p-warn'],form:['Formateur','p-good'],adm:['Administration','p-info'],fin:['Terminé','p-mut']};
+const DOC9=[['d_inscription','Dossier d’inscription'],['convention','Convention de formation'],['d_convocation','Convocation + règlement intérieur'],['d_emargement','Feuille d’émargement'],['d_qcm_i','QCM initial'],['d_qcm_f','QCM final et enquête de satisfaction'],['attestation','Attestation de fin de formation'],['d_sat_form','Satisfaction formateur'],['d_sat_ent','Satisfaction entreprise à 3 mois']];
+const REM=[['pms','PMS complet'],['aff_allerg','Affichage réglementaire · allergènes'],['aff_lavage','Affichage · lavage des mains'],['aff_temp','Affichage · températures réglementaires'],['aff_micro','Danger microbiologique'],['aff_chim','Dangers chimiques'],['plan_net','Plan de nettoyage'],['huiles','Collecte des huiles'],['audit','Rapport d’audit']];
+const FORMS=[['','PMS'],[':b','Étiquetage et traçabilité']];
+const isCom=()=>role==='terrain'||role==='phoneuse';
+function dosOfE(id){if(!ui.dos[id])ui.dos[id]=id===1?{mode:'akto',has:{kbis:'Kbis_Beffroi.pdf'},sal:[{nom:'BENALI',prenom:'Karim',naiss:'1988-03-12',paie:'Paie_Benali.pdf'}],ak:{login:'beffroi.douai',pass:true},formateur:'RA',dates:['2026-12-08','2026-12-09'],audit:'',valCom:false,ctrF:false,doc:{},valForm:false,ctl:false,depot:false,accord:false,fact:0,paye:false,rem:{}}:{mode:'akto',has:{},sal:[],ak:{},formateur:'',dates:['',''],audit:'',valCom:false,ctrF:false,doc:{},valForm:false,ctl:false,depot:false,accord:false,fact:0,paye:false,rem:{}};return ui.dos[id]}
+function jours4(f){const d=new Date(f+'T12:00');const out=[];while(out.length<4){if(d.getDay()%6!==0)out.push(d.toLocaleDateString('fr-FR',{weekday:'short',day:'2-digit',month:'2-digit'}));d.setDate(d.getDate()+1)}return out}
+function chain(d){const SO=d.mode!=='akto',SF=d.mode==='docs';
+ const S=[()=>{const m=[];if(SF)return d.valCom?[]:['validation du dossier par le commercial'];if(!SO){if(!d.has.kbis)m.push('Kbis');if(!d.has.cni)m.push('CNI du gérant')}if(!d.sal.length)m.push('au moins un salarié');d.sal.forEach(x=>{const n=[x.prenom,x.nom].join(' ');if(!SO){if(!x.naiss)m.push('date de naissance de '+n);if(!x.paie)m.push('fiche de paie de '+n)}});if(!SO){if(!d.ak.login)m.push('identifiant AKTO du client');if(!d.ak.pass)m.push('mot de passe AKTO du client')}if(!d.formateur)m.push('formateur à attribuer');if(!d.dates[0])m.push('dates des deux formations');if(!SO&&!d.audit)m.push('date de l’audit offert');if(!m.length&&!d.valCom)m.push('validation du dossier par le commercial');return m},
+  ()=>SF||d.ctrF?[]:['contre-appel de l’établissement par le formateur'],
+  ()=>SF||d.formed?[]:['formations à réaliser'],
+  ()=>{if(SF)return [];const m=[];FORMS.forEach(([sf,nm])=>{const L=DOC9.filter(([k])=>!d.doc[k+sf]);if(L.length)m.push(nm+' · '+L.length+' document'+(L.length>1?'s':'')+' signé'+(L.length>1?'s':''))});if(!m.length&&!d.valForm)m.push('validation par le formateur');return m},
+  ()=>SF||d.ctl?[]:['contrôle de conformité du dossier par l’administration'],
+  ()=>SO||d.depot?[]:['dépôt des deux dossiers sur le portail AKTO du client'],
+  ()=>SO||d.accord?[]:['accord de l’AKTO (mis à jour par l’import du lundi)'],
+  ()=>d.fact>=(SF?1:2)?[]:[SO?(SF?'facture au client à éditer':'factures au client à éditer (une par formation)'):'factures des deux formations à éditer'],
+  ()=>d.paye?[]:[SO?'paiement du client à pointer':'paiement AKTO (pointé par l’import)']];
+ const all=S.map(f=>f());let a=all.findIndex(m=>m.length);if(a<0)a=S.length;return {idx:a,miss:all[a]||[],all}}
+function dosProg(id){const d=dosOfE(id),c=chain(d),st=CSTEP[c.idx]||CSTEP[9];const me=isCom()?'com':role==='formateur'?'form':'adm';return {done:c.idx,tot:9,st,mine:st[1]===me?c.miss.length:0,c}}
+function dosHTML(e){const d=dosOfE(e.id),c=chain(d),st=CSTEP[c.idx],SO=d.mode!=='akto',SF=d.mode==='docs',me=isCom()?'com':role==='formateur'?'form':'adm',boss=role==='direction';
+ const can=o=>boss||o===me;
+ const up=(k,lab,v,o)=>`<li class="${v?'ok':''}"><span class="st">${v?'✓':''}</span><div class="grow"><b>${lab}</b><small>${v?esc(v===true?'déposé':v):'À déposer · '+OWNL[o][0]}</small></div>${can(o)?`<button class="btn sm ${v?'ghost':'primary'}" data-up="${k}">${v?'Remplacer':'Déposer'}</button>${v?'':`<button class="btn sm" data-scan="${k}" title="Photographier les pages : le CRM en fait un seul PDF">Scanner</button>`}`:''}</li>`;
+ const sec=(o,t,body,stepIdx)=>{const active=CSTEP[c.idx]&&CSTEP[c.idx][1]===o&&(stepIdx==null||stepIdx.includes(c.idx));return `<section class="dsec ${active&&can(o)?'mine':''}"><header><span class="pill ${OWNL[o][1]}">${OWNL[o][0]}</span><h3>${t}</h3>${active&&can(o)?'<span class="pill p-info">À vous</span>':''}</header>${body}</section>`};
+ const steps=`<ol class="chain">${CSTEP.slice(0,9).filter((x,i)=>!(SO&&(i===5||i===6))&&!(SF&&i>=1&&i<=4)).map(([t,o])=>{const i=CSTEP.findIndex(x=>x[0]===t);return `<li class="${i<c.idx?'done':i===c.idx?'cur':''}"><span></span><b>${t.split(' · ')[0]}</b><small>${OWNL[o][0]}</small></li>`}).join('')}</ol>`;
+ return `<div class="dwrap">
+ <div class="dhead"><div class="grow"><small>Étape actuelle</small><b>${st?st[0]:'Soldé'}</b>${st?`<span class="pill ${OWNL[st[1]][1]}">Dossier chez : ${OWNL[st[1]][0]}</span>`:''}</div>
+  ${c.miss.length?`<div class="miss"><b>Manque pour passer à l’étape suivante :</b><ul>${c.miss.map(m=>`<li>${esc(m)}</li>`).join('')}</ul></div>`:''}</div>
+ ${steps}
+ ${sec('com','Ce que le client achète et comment il est financé',`<div class="dgrid3">${[['akto','Financé par l’AKTO','Dossier complet à monter : pièces, compte AKTO, dépôt, accord, facture à l’OPCO'],['sans','Sans financement OPCO','Aucun dossier à monter : le client paie directement, facture à son nom'],['docs','Les documents seulement','Pas de formation · uniquement les documents à remettre au client']].map(([k,t,x])=>`<label class="opt"><input type="radio" name="dMode" value="${k}" ${d.mode===k?'checked':''} ${can('com')?'':'disabled'}><span><b>${t}</b><small>${x}</small></span></label>`).join('')}</div>`)}
+ ${SF?'':sec('com','Pièces et informations du dossier',`
+  ${SO?'':`<ul class="plist">${up('kbis','Kbis (moins de 3 mois)',d.has.kbis,'com')}${up('cni','CNI du gérant (recto / verso)',d.has.cni,'com')}</ul>`}
+  <div class="dsub">Salariés à former</div>
+  <div class="tw"><table class="t"><thead><tr><th>Nom</th><th>Prénom</th>${SO?'':'<th>Né(e) le</th><th>Fiche de paie</th>'}<th></th></tr></thead><tbody>${d.sal.map((x,i)=>`<tr><td class="name">${esc(x.nom)}</td><td>${esc(x.prenom)}</td>${SO?'':`<td>${x.naiss?x.naiss.split('-').reverse().join('/'):'<span class="late">à saisir</span>'}</td><td>${x.paie?`<span class="pill p-good">${esc(x.paie)}</span>`:can('com')?`<button class="btn sm primary" data-paie="${i}">Déposer</button>`:'<span class="late">manquante</span>'}</td>`}<td class="num">${can('com')?`<button class="btn sm ghost" data-sdel="${i}">Supprimer</button>`:''}</td></tr><tr class="salx"><td colspan="${SO?3:5}"><details><summary>Informations reprises dans les documents Word${x.poste?'':' · à compléter'}</summary><div class="dgrid"><label class="fld">Poste<input value="${esc(x.poste||'')}"></label><label class="fld">Téléphone<input></label><label class="fld">E-mail<input></label><label class="fld">Adresse personnelle<input></label><label class="rchk"><input type="checkbox"><span>Situation de handicap</span></label><label class="fld">Aménagements nécessaires (si handicap)<input></label><label class="fld">Commentaire du formateur à l’entrée<input></label></div>
+  <div class="dsub">Résultats · attestation et QCM</div><div class="dgrid3"><label class="fld">QCM initial /20<input type="number" min="0" max="20"></label><label class="fld">QCM final /20<input type="number" min="0" max="20"></label>${[1,2,3,4,5].map(i=>`<label class="fld">Objectif ${i}<select><option>—</option><option>Obj. ${i} · non atteint</option><option>en partie</option><option>atteint</option></select></label>`).join('')}<label class="fld">Commentaire du formateur en fin de formation<input></label></div><p class="note">Note finale = (QCM final + objectifs) / 2 · admis si ≥ 10</p></details></td></tr>`).join('')}
+  ${can('com')?`<tr><td><input id="sN" placeholder="NOM" aria-label="Nom"></td><td><input id="sP" placeholder="Prénom" aria-label="Prénom"></td>${SO?'':'<td><input id="sD" type="date" aria-label="Date de naissance"></td><td><small style="color:var(--mut)">à déposer ensuite</small></td>'}<td class="num"><button class="btn sm primary" id="sAdd">Ajouter un salarié</button></td></tr>`:''}</tbody></table></div>
+  <div class="dsub">Montant</div>
+  <div class="dgrid"><label class="fld">Tarif<select id="dT" ${can('com')?'':'disabled'}><option value="350" ${d.tarif!=420?'selected':''}>AKTO · 350 € HT par salarié et par formation</option><option value="420" ${d.tarif==420?'selected':''}>Boucherie, boulangerie · 420 € HT par salarié et par formation</option></select></label></div>
+  ${d.sal.length?`<div class="tw"><table class="t"><thead><tr><th>Formation</th><th class="num">Salariés</th><th class="num">Prix HT</th><th class="num">Total HT</th><th class="num">TTC</th></tr></thead><tbody>${['Plan de maîtrise sanitaire (PMS) · 14 h sur 2 jours','Étiquetage et traçabilité · 14 h sur 2 jours'].map(t=>{const n=d.sal.length,pu=d.tarif||350;return `<tr><td>${t}</td><td class="num">${n}</td><td class="num">${eur(pu)}</td><td class="num">${eur(n*pu)}</td><td class="num">${eur(n*pu*1.2)}</td></tr>`}).join('')}<tr><td><b>Total du dossier</b></td><td></td><td></td><td class="num"><b>${eur(2*d.sal.length*(d.tarif||350))}</b></td><td></td></tr></tbody></table></div>${SO?'':'<p class="note">L’AKTO règle le montant hors taxes ; la TVA de 20 % figure sur la facture.</p>'}`:'<p class="note">Ajoutez les salariés stagiaires plus bas : le montant se calcule tout seul, par effectif et par formation.</p>'}
+  ${SO?'':`<div class="dsub">Espace personnel AKTO du client · créé avec le client pendant le rendez-vous</div><div class="dgrid">
+   <label class="fld">Identifiant *<input id="akL" value="${esc(d.ak.login||'')}" ${can('com')?'':'disabled'}></label><label class="fld">Mot de passe *<input id="akP" type="password" value="${d.ak.pass?'motdepasse':''}" ${can('com')?'':'disabled'}></label>
+   <label class="fld">E-mail du compte<input id="akM" value="${esc(d.ak.mail||'')}" ${can('com')?'':'disabled'}></label><label class="fld">Compte créé le<input type="date" id="akC" value="${d.ak.cree||'2026-11-10'}" ${can('com')?'':'disabled'}></label></div>`}
+  <div class="dsub">Planning · deux formations de 14 h sur 4 jours ouvrés qui se suivent (du lundi au vendredi)${SO?', sans délai imposé : pas de dossier AKTO':', au plus tôt 15 jours après la création du compte AKTO'}</div>
+  <div class="dgrid"><label class="fld">Premier jour de formation *<input type="date" id="d0" value="${d.dates[0]}" ${can('com')||role==='formateur'&&d.ctrF?'':'disabled'}></label>
+   <div class="fld">Les 4 jours<div class="jours">${d.dates[0]?jours4(d.dates[0]).map((j,i)=>`<span>${i<2?'PMS':'Étiquetage'} · jour ${i%2+1} · ${j}</span>`).join(''):'<span>Jour 1 et jour 2 · à fixer</span>'}</div></div>
+   <label class="fld">Formateur des deux formations *<select id="dF" ${can('com')?'':'disabled'}><option value="">À attribuer</option>${['RA','JO'].map(k=>`<option value="${k}" ${d.formateur===k?'selected':''}>${TEAM[k]}</option>`).join('')}</select></label>
+   ${SO?'':`<label class="fld">Audit offert · 2 h · date *<input type="date" id="dA" value="${d.audit}" ${can('com')?'':'disabled'}></label><label class="fld">Heure de l’audit<input type="time" id="dAH" value="${d.auditH||'10:00'}" ${can('com')?'':'disabled'}></label><label class="fld">Formateur de l’audit<select ${can('com')?'':'disabled'}><option>Le même que la formation</option><option>Jordan K.</option></select></label>`}</div>
+  <p class="note">Choisissez le premier jour : les trois autres sont les jours ouvrés qui suivent. Les dates se modifient par le commercial tant que le dossier n’est pas validé, puis par le formateur après son contre-appel.</p>
+  ${can('com')&&c.idx===0?`<div class="dfoot"><button class="btn primary" id="vCom" ${c.miss.length===1&&c.miss[0].startsWith('validation')?'':'disabled'}>Valider le dossier</button><small>${c.miss.length===1&&c.miss[0].startsWith('validation')?'Tout est complet : le dossier passe au formateur pour le contre-appel':'Le bouton s’active quand tout est rempli'}</small></div>`:''}`,[0])}
+ ${SF?'':sec('form','Formation et documents signés',`
+  <ul class="plist"><li class="${d.ctrF?'ok':''}"><span class="st">${d.ctrF?'✓':''}</span><div class="grow"><b>Contre-appel de l’établissement</b><small>${d.ctrF?'Fait':'Le formateur confirme les dates et les stagiaires avec le gérant'}</small></div>${can('form')&&!d.ctrF&&c.idx>=1?'<button class="btn sm primary" id="ctrF">Contre-appel fait</button>':''}</li>
+  <li class="${d.formed?'ok':''}"><span class="st">${d.formed?'✓':''}</span><div class="grow"><b>Formations réalisées</b><small>${d.dates[0]?'PMS le '+d.dates[0].split('-').reverse().join('/'):'dates à fixer'}${d.dates[1]?' · Étiquetage le '+d.dates[1].split('-').reverse().join('/'):''}</small></div>${can('form')&&!d.formed&&c.idx>=2?'<button class="btn sm" id="formed">Marquer réalisées</button>':''}</li></ul>
+  ${FORMS.map(([sf,nm])=>`<div class="dsub">${nm} · documents signés à téléverser</div><ul class="plist">${DOC9.map(([k,l],i)=>up(k+sf,String(i+1)+' · '+l,d.doc[k+sf],'form')).join('')}</ul>`).join('')}
+  ${can('form')&&c.idx===3&&c.miss.length===1&&c.miss[0].startsWith('validation')?'<div class="dfoot"><button class="btn primary" id="vForm">Valider et transmettre à l’administration</button></div>':''}`,[1,2,3])}
+ ${sec('adm','Contrôle, dépôt AKTO et facturation',`<ul class="plist">
+  ${SF?'':`<li class="${d.ctl?'ok':''}"><span class="st">${d.ctl?'✓':''}</span><div class="grow"><b>Contrôle de conformité du dossier</b><small>${d.ctl?'Conforme':'Vérifier les documents signés avant le dépôt'}</small></div>${can('adm')&&c.idx===4?'<button class="btn sm primary" id="ctlOk">Conforme</button><button class="btn sm" id="ctlNo">Refuser avec motif</button>':''}</li>`}
+  ${SO?'':`<li class="${d.depot?'ok':''}"><span class="st">${d.depot?'✓':''}</span><div class="grow"><b>Dépôt des deux dossiers sur le portail AKTO du client</b><small>Un seul fichier ZIP avec un dossier par formation, prêt à téléverser : pièces du client, PMS (9 documents signés), Étiquetage et traçabilité (9 documents signés) · identifiant AKTO : ${esc(d.ak.login||'—')}</small></div>${can('adm')&&c.idx>=4?'<button class="btn sm" data-t="ZIP prêt : 2 dossiers complets">Télécharger les 2 dossiers complets</button>':''}${can('adm')&&c.idx===5?'<button class="btn sm primary" id="depot">Dépôt effectué sur le portail</button>':can('adm')&&c.idx===4?'<small style="color:var(--mut)">dépôt possible après le contrôle de conformité</small>':''}</li>
+  <li class="${d.accord?'ok':''}"><span class="st">${d.accord?'✓':''}</span><div class="grow"><b>Accord de prise en charge</b><small>Mis à jour automatiquement par l’import AKTO du lundi</small></div>${can('adm')&&c.idx===6?'<button class="btn sm" id="accord">Simuler l’import</button>':''}</li>`}
+  <li class="${d.fact>=(SF?1:2)?'ok':''}"><span class="st">${d.fact>=(SF?1:2)?'✓':''}</span><div class="grow"><b>${SO?'Facture'+(SF?'':'s')+' au client':'Factures des deux formations à l’OPCO'}</b><small>${d.fact} / ${SF?1:2} éditée${d.fact>1?'s':''} · PDF + mail pré-rédigé</small></div>${can('adm')&&c.idx===7?'<button class="btn sm primary" id="fact">Éditer la facture</button>':''}</li>
+  <li class="${d.paye?'ok':''}"><span class="st">${d.paye?'✓':''}</span><div class="grow"><b>Paiement</b><small>${SO?'À pointer à réception':'Pointé par l’import AKTO · déclenche le décompte des commissions'}</small></div>${can('adm')&&c.idx===8?'<button class="btn sm" id="paye">Pointer le paiement</button>':''}</li></ul>`,[4,5,6,7,8])}
+ ${SO?'':`<section class="dsec"><header><span class="pill p-mut">Audits hygiène</span><h3>Offerts par le centre</h3></header><ul class="plist"><li><span class="st"></span><div class="grow"><b>Audit offert · 2 h${d.audit?' · '+d.audit.split('-').reverse().join('/')+' à '+(d.auditH||'10:00'):''}</b><small>Audit guidé, photos et rapport PDF · audit de suivi à 3 mois</small></div><button class="btn sm" data-t="Ouvrirait l’audit guidé">Lancer l’audit</button></li></ul></section>`}
+ <section class="dsec"><header><span class="pill p-mut">Autres informations</span><h3>Date de signature, motif de la formation</h3></header><div class="dgrid"><label class="fld">Date de la dernière signature<input type="date" value="2026-11-03"><small style="font-weight:400;color:var(--mut)">sert à faire remonter le client en « Renouvellement » un an après</small></label><label class="fld">Motif de la formation<input value="Contrôle AlimConfiance « à améliorer »"></label></div></section>
+ <section class="dsec"><header><span class="pill p-mut">Documents</span><h3>Documents générés au nom du client</h3></header>
+  <div class="dsub">Documents Word de formation · remplis avec l’entreprise, les salariés et les dates</div>
+  <div class="dbar"><button class="btn" data-t="Les 9 documents Word générés au nom de ${esc(e.nom)}">Générer les documents Word</button><button class="btn" data-t="Les 9 documents réunis en un seul PDF">Tout en un PDF</button></div>
+  <div class="dsub">Documents remis au client · à imprimer et à conserver dans le dossier</div>
+  <ul class="plist">${REM.map(([k,l])=>`<li class="${d.rem[k]?'ok':''}"><span class="st">${d.rem[k]?'✓':''}</span><div class="grow"><b>${l}</b><small>${d.rem[k]?'Imprimé au nom du client le '+d.rem[k]:'Version type de la bibliothèque, personnalisée au nom du client'}</small></div><button class="btn sm" data-rem="${k}">Imprimer</button><button class="btn sm ghost" data-remdl="${k}">PDF</button></li>`).join('')}</ul>
+  <div class="dbar"><button class="btn primary" id="remAll">Tout imprimer au nom du client</button><small>Chaque document imprimé est noté « remis » avec sa date</small></div></section>
+ <input type="file" id="dFile" hidden></div>`}
+function bindDos(e){const d=dosOfE(e.id),re=()=>V.fiche(),v=id=>document.getElementById(id),on=(id,f)=>{const x=v(id);if(x)x.onclick=f};
+ $v().querySelectorAll('input[name=dMode]').forEach(r=>r.onchange=()=>{d.mode=r.value;re()});
+ const sa=v('sAdd');if(sa)sa.onclick=()=>{const n=v('sN').value.trim(),pr=v('sP').value.trim();if(!n)return toast('Indiquez au moins le nom');d.sal.push({nom:n.toUpperCase(),prenom:pr,naiss:v('sD')?v('sD').value:'',paie:''});re()};
+ $v().querySelectorAll('[data-sdel]').forEach(b=>b.onclick=()=>{d.sal.splice(+b.dataset.sdel,1);re()});
+ [['dT',x=>d.tarif=+x],['akM',x=>d.ak.mail=x],['akC',x=>d.ak.cree=x],['dAH',x=>d.auditH=x],['akL',x=>d.ak.login=x],['akP',x=>d.ak.pass=!!x],['dF',x=>d.formateur=x],['d0',x=>{const dt=new Date(x+'T12:00');if(dt.getDay()%6===0){toast('La formation ne peut pas commencer un samedi ni un dimanche.');return}const mn=new Date((d.ak.cree||'2026-11-10')+'T12:00');mn.setDate(mn.getDate()+15);if(d.mode==='akto'&&role!=='direction'&&role!=='admin'&&dt<mn){toast('La formation ne peut pas commencer avant le '+mn.toLocaleDateString('fr-FR')+' : 15 jours après la création du compte AKTO.');return}d.dates[0]=x;d.dates[1]=x}],['d1',x=>d.dates[1]=x],['dA',x=>d.audit=x]].forEach(([id,f])=>{const x=v(id);if(x)x.onchange=()=>{f(x.value);re()}});
+ const fi=v('dFile');let tgt=null;
+ $v().querySelectorAll('[data-up],[data-scan],[data-paie]').forEach(b=>b.onclick=()=>{if(b.dataset.scan){const k=b.dataset.scan;(k in d.has||k==='kbis'||k==='cni'?d.has:d.doc)[k]='Scan_'+k.replace(':b','_etiq')+'.pdf';re();return toast('Pages photographiées réunies en un PDF')}tgt=b.dataset.up||('paie:'+b.dataset.paie);fi.value='';fi.click()});
+ fi.onchange=()=>{const f=fi.files[0];if(!f||!tgt)return;if(tgt.startsWith('paie:'))d.sal[+tgt.slice(5)].paie=f.name;else if(tgt==='kbis'||tgt==='cni')d.has[tgt]=f.name;else d.doc[tgt]=f.name;re();toast('Déposé dans le dossier Drive')};
+ on('vCom',()=>{d.valCom=true;re();toast('Dossier validé · transmis au formateur pour le contre-appel')});
+ on('ctrF',()=>{d.ctrF=true;re()});on('formed',()=>{d.formed=true;re()});
+ on('vForm',()=>{d.valForm=true;re();toast('Transmis à l’administration pour contrôle')});
+ on('ctlOk',()=>{d.ctl=true;re()});on('ctlNo',()=>toast('Maquette : demanderait le motif, le dossier revient au formateur'));
+ on('depot',()=>{d.depot=true;re()});on('accord',()=>{d.accord=true;re()});on('fact',()=>{d.fact++;re();toast('Facture éditée · PDF et mail à l’OPCO préparés')});on('paye',()=>{d.paye=true;re();toast('Soldé · le décompte des commissions démarre')});
+ const today=new Date().toLocaleDateString('fr-FR');
+ $v().querySelectorAll('[data-rem],[data-remdl]').forEach(b=>b.onclick=()=>{const k=b.dataset.rem||b.dataset.remdl;d.rem[k]=today;re();toast(b.dataset.rem?'Prêt à imprimer, au nom de '+e.nom:'PDF téléchargé')});
+ on('remAll',()=>{REM.forEach(([k])=>d.rem[k]=today);re();toast('9 documents prêts à imprimer, au nom de '+e.nom)});
+}
+/* ===== Ventes : statuts commerciaux v112 (avant signature) ===== */
+const VST=[
+ ['ren','Renouvellement · à relancer en urgence','#9B2226'],
+ ['out','RDV passé · résultat à saisir','#C2410C'],
+ ['rep','RDV non honoré · à replanifier','#7C3AED'],
+ ['ctr','RDV à venir · contre-appel à effectuer','#1F5F7A'],
+ ['conf','RDV confirmé · à réaliser','#2F5D9E'],
+ ['ref','En réflexion · à relancer','#B7791F'],
+ ['lost','Refusé · à recontacter dans un an','#6B5B5B']];
+const DEALS=[
+ {id:6,n:'Boulangerie Saint-Pierre',v:'Cambrai',st:'ren',x:'Dernière signature le 03/12/2025 · il y a 11 mois · commission 15 %',m:1400,c:'RA'},
+ {id:2,n:'Boucherie des Halles',v:'Lens',st:'out',x:'RDV du 16/11/2026 passé · indiquez le résultat : signé, en réflexion ou refusé',m:1890,c:'ME',t:'SA'},
+ {id:4,n:'Salon Élégance',v:'Arras',st:'rep',x:'RDV du 12/11/2026 non honoré · fixez une nouvelle date : le contre-appel sera à refaire · 07 12 45 24 90',m:1950,c:'ME',t:'SA'},
+ {id:7,n:'Tacos Factory',v:'Denain',st:'ctr',x:'Contre-appel à faire · RDV le 19/11/2026 à 14:00 · 07 31 45 27 90',m:2100,c:'ME',t:'SA'},
+ {id:13,n:'Royal Tacos',v:'Lens',st:'ctr',x:'Contre-appel à faire · RDV le 18/11/2026 à 15:00',m:1120,c:'ME',t:'SA'},
+ {id:9,n:'Burger Station',v:'Lille',st:'conf',x:'RDV confirmé le 18/11/2026 à 11:00',m:1360,c:'RA',t:'SA'},
+ {id:14,n:'Snack O’Délices',v:'Douai',st:'conf',x:'RDV confirmé le 20/11/2026 à 14:00',m:1120,c:'RA',t:'SA'},
+ {id:8,n:'Épicerie du Marché',v:'Somain',st:'ref',x:'En réflexion depuis le 10/11/2026 · à relancer maintenant',m:1120,c:'ME',t:'SA',late:1},
+ {id:15,n:'Pâtisserie Lemaire',v:'Cuincy',st:'lost',x:'Refus le 02/12/2025 · à recontacter maintenant',m:1120,c:'RA',late:1}];
+V.affaires=()=>{const mine=role==='terrain'?DEALS.filter(d=>d.c==='ME'):DEALS;
+ const acts=d=>({ren:'<button class="btn sm" data-va="Renouvellement signé · nouveau cycle, commission 15 %">Renouvellement signé</button>',
+  out:'<button class="btn sm primary" data-va="Signé : devenu client · pièces à récupérer : Kbis, CNI du gérant, salariés et fiches de paie">Signé</button><button class="btn sm" data-va="Classé en réflexion · à relancer dans 7 jours">En réflexion</button><button class="btn sm" data-va="Classé en refusé · à recontacter dans un an">Refusé</button><button class="btn sm" data-va="Rendez-vous non honoré · à replanifier">Non honoré</button>',
+  rep:'<label class="minif">Nouveau RDV <input type="date" aria-label="Nouvelle date"><input type="time" value="10:00" aria-label="Heure"></label><button class="btn sm" data-va="Classé en refusé · à recontacter dans un an">Refusé</button>',
+  ctr:'<button class="btn sm primary" data-va="Contre-appel noté · RDV confirmé">Contre-appel fait</button>',
+  conf:'<small style="color:var(--mut)">Le résultat se saisit le lendemain du RDV</small>',
+  ref:'<button class="btn sm primary" data-va="Signé : devenu client">Signé</button><label class="minif">Relance <input type="date" value="2026-11-17" aria-label="Date de relance"></label><button class="btn sm" data-va="Classé en refusé · à recontacter dans un an">Refusé</button>',
+  lost:'<button class="btn sm" data-va="Dossier rouvert">Rouvrir</button>'})[d.st];
+ $v().innerHTML=head(role==='terrain'?'Mes ventes':'Ventes','Du rendez-vous à la signature. Une fois signé, le client passe en dossier (Entreprises › fiche › Dossier).',role==='phoneuse'?'':'<select class="btn" aria-label="Commercial"><option>Tous les commerciaux</option><option>Mehdi S.</option><option>Rachid A.</option></select>')+
+ `<div class="kpis"><div class="kpi"><small>Contre-appels à faire</small><b>${mine.filter(d=>d.st==='ctr').length}</b><div class="d" style="color:var(--ink2)">Prochain RDV aujourd’hui</div></div><div class="kpi"><small>RDV passés sans résultat</small><b>${mine.filter(d=>d.st==='out').length}</b><div class="d" style="color:var(--bad)">Signé, en réflexion ou refusé : à indiquer</div></div><div class="kpi"><small>Clients en réflexion</small><b>${mine.filter(d=>d.st==='ref').length}</b><div class="d" style="color:var(--bad)">1 à relancer aujourd’hui</div></div><div class="kpi"><small>Renouvellements à relancer</small><b>${mine.filter(d=>d.st==='ren').length}</b><div class="d" style="color:var(--ink2)">Signés il y a 11 mois ou plus · 15 %</div></div></div>
+ ${VST.map(([k,l,c])=>{const L=mine.filter(d=>d.st===k);if(!L.length)return '';return `<section class="panel vgrp" style="--gc:${c}"><div class="ph"><i class="gdot"></i>${l}${k==='ren'?'<span class="pill p-bad">URGENT · 15 %</span>':''}<span class="sp"></span><small>${eur(L.reduce((a,d)=>a+d.m,0))} · ${L.length}</small></div>
+  <div class="tw"><table class="t"><tbody>${L.map(d=>`<tr data-rowopen="${d.id}"><td style="width:28%"><span class="name">${esc(d.n)}</span><span class="sub">${esc(d.v)} · ${TEAM[d.c]}${d.t?' · RDV pris par '+TEAM[d.t]:''}</span></td><td style="white-space:normal"><span class="${d.late?'late':''}">${esc(d.x)}</span></td><td class="num">${eur(d.m)}</td><td class="num"><div class="vacts">${acts(d)}<button class="btn sm openb" data-open="${d.id}">Fiche ›</button></div></td></tr>`).join('')}</tbody></table></div></section>`}).join('')}`;
+ $v().querySelectorAll('[data-va]').forEach(b=>b.onclick=()=>toast(b.dataset.va));bindOpen();
+};
+/* ===== Prospection : portefeuille d'appels v112 ===== */
+const CALLS=[
+ {g:'now',n:'Snack O’Délices',v:'Douai',a:'Restauration rapide',tel:'03 27 88 12 40',alim:'À corriger de manière urgente',prio:1,h:'2 appels · dernier le 17/11/2026 · Sarah · rappel aujourd’hui',ang:'PMS et relevés de froid'},
+ {g:'todo',n:'Chevaline Charcuterie Joly',v:'Calais',a:'Boucherie',tel:'03 21 97 59 66',alim:'À corriger de manière urgente',prio:1,h:'Jamais appelé',ang:'Traçabilité viande, DLC, froid',script:1},
+ {g:'todo',n:'O’Naan Tacos / O’Mims',v:'Aniche',a:'Restauration rapide',tel:'03 59 66 41 35',alim:'À améliorer',prio:1,h:'Jamais appelé',ang:'PMS et étiquetage',script:1},
+ {g:'todo',n:'Boulangerie Barbier',v:'Audruicq',a:'Boulangerie',tel:'03 91 94 32 09',alim:'À améliorer',prio:0,h:'Jamais appelé',ang:'Étiquetage et allergènes',script:1},
+ {g:'int',n:'Royal Pizza',v:'Lens',a:'Restauration rapide',tel:'06 41 22 18 03',alim:'Satisfaisant',prio:0,h:'1 appel · dernier le 14/11/2026 · Sarah',ang:'Formation des nouveaux salariés'},
+ {g:'prog',n:'Salon Élégance',v:'Arras',a:'Coiffure',tel:'07 12 45 24 90',alim:'',prio:0,h:'1 appel · dernier le 18/11/2026 · Sarah · rappel le 21/11/2026',ang:''},
+ {g:'nr',n:'Pâtisserie Lemaire',v:'Cuincy',a:'Boulangerie',tel:'03 27 08 44 61',alim:'Satisfaisant',prio:0,h:'2 appels · dernier le 18/11/2026 · Sarah',ang:''},
+ {g:'nonum',n:'Kebab du Beffroi',v:'Douai',a:'Restauration rapide',tel:'',alim:'À améliorer',prio:1,h:'Jamais appelé',ang:'PMS'}];
+const CG=[['now','À rappeler maintenant','Rappels arrivés à échéance','#9B2226'],['todo','À appeler','Contacts jamais appelés','#3D4A8A'],['int','Intéressés · à relancer','','#56702A'],['prog','Rappels programmés','','#8A6418'],['nr','Appelés · sans réponse','','#5B6577'],['non','Non intéressés','','#7A5A5A'],['nonum','Sans numéro · à rechercher','Impossible d’appeler : trouvez le numéro, saisissez-le, la fiche passe dans « À appeler »','#7A2E8E']];
+V.appels=()=>{const mgr=role==='direction'||role==='admin';
+ $v().innerHTML=head('Prospection','Vos contacts à appeler. Cliquez sur le numéro pour appeler, puis sur le résultat. « RDV pris » ouvre la fiche : complétez ce qui manque, choisissez le commercial et la date, et le dossier passe au commercial.','<button class="btn">Nouvelle fiche</button><button class="btn primary">Importer une liste</button>')+
+ `<div class="kpis"><div class="kpi"><small>À rappeler maintenant</small><b style="color:var(--bad)">1</b><div class="d" style="color:var(--ink2)">Rappels arrivés à échéance</div></div><div class="kpi"><small>À appeler</small><b>3</b><div class="d" style="color:var(--ink2)">Jamais appelés</div></div><div class="kpi"><small>Sans numéro</small><b>1</b><div class="d" style="color:var(--ink2)">À rechercher avant d’appeler</div></div><div class="kpi"><small>Appels du jour</small><b>14</b><div class="d" style="color:var(--ink2)">Résultats saisis aujourd’hui</div></div><div class="kpi"><small>RDV pris ce mois</small><b>9</b><div class="d" style="color:var(--ink2)">Passés au commercial</div></div></div>
+ <div class="filters panel" style="border-radius:var(--r)"><select aria-label="Liste"><option>Toutes les listes</option><option>Veille 11/10 · Nord–Pas-de-Calais</option><option>Liste du 04/11/2026</option></select>${mgr?'<select aria-label="Personne"><option>Toute l’équipe</option><option>Sarah L.</option></select><button class="btn sm">Attribuer / répartir cette liste</button>':''}<span class="sp"></span><button class="btn sm ghost">Supprimer une liste</button></div>
+ ${CG.map(([k,l,sub,c])=>{const L=CALLS.filter(x=>x.g===k);if(!L.length)return '';return `<section class="panel vgrp" style="--gc:${c}"><div class="ph"><i class="gdot"></i>${l}${sub?`<small style="margin-left:6px">${sub}</small>`:''}<span class="sp"></span><small>${L.length}</small></div>
+  <ul class="list">${L.map(x=>`<li class="callrow"><div class="grow"><b>${esc(x.n)}</b>${x.prio?' <span class="pill p-bad">Priorité haute</span>':''}<small>${esc(x.v)} · ${esc(x.a)}${x.alim?` · <span style="color:${/urgente/.test(x.alim)?'var(--bad)':/améliorer/.test(x.alim)?'var(--warn)':'inherit'}">Alim’confiance : ${esc(x.alim)}</span>`:''}${x.ang?' · Angle : '+esc(x.ang):''}</small>${x.script?'<details class="scr"><summary>Script d’appel</summary><p><b>Accroche :</b> « Bonjour, PPA Formation accompagne les boucheries et charcuteries sur le PMS, les relevés de froid et la traçabilité… »</p><p><b>Questions :</b> 1. L’établissement est-il autorisé à fonctionner ? 2. Quelles mesures correctives ont été documentées ? 3. Qui gère les lots et les températures ?</p><p><b>À éviter :</b> ne jamais affirmer que le commerce est ouvert.</p></details>':''}</div>
+   <div class="ctel">${x.tel?`<b>${x.tel}</b>`:'<span class="late">Pas de numéro</span>'}<small>${esc(x.h)}</small></div>
+   <div class="vacts">${x.tel?['Pas de réponse','À rappeler','Intéressé','Pas intéressé'].map(r=>`<button class="btn sm" data-cr="${r}">${r}</button>`).join('')+'<button class="btn sm primary" data-cr="RDV pris">RDV pris</button>':'<button class="btn sm">Chercher le numéro</button><button class="btn sm">Pages Jaunes</button><input placeholder="Saisir le numéro trouvé" aria-label="Numéro"><button class="btn sm primary">Enregistrer</button><button class="btn sm ghost">Introuvable</button>'}<button class="btn sm openb" data-t="Ouvrirait la fiche prospect">Fiche ›</button></div></li>`).join('')}</ul></section>`}).join('')}`;
+ $v().querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>toast('Maquette : '+b.dataset.t));
+ $v().querySelectorAll('[data-cr]').forEach(b=>b.onclick=()=>toast(b.dataset.cr==='À rappeler'?'À rappeler · rappel proposé le 23/11/2026 (J+2, décalé au lundi)':b.dataset.cr==='RDV pris'?'Maquette : ouvrirait la fiche prospect avec le bloc « Rendez-vous commercial »':b.dataset.cr+' · enregistré'));
+};
+
+/* ===== Émargement : un seul QR code → page de signature → case du Word 04 ===== */
+const EM_ST=['BENALI Karim','DURAND Inès','MARTIN Yanis'],EM_J=['2026-11-18','2026-11-19'];ui.sig=ui.sig||{};
+function qrSVG(){let r='';const n=25;let seed=7;const rnd=()=>(seed=(seed*9301+49297)%233280)/233280;for(let y=0;y<n;y++)for(let x=0;x<n;x++){const f=(x<7&&y<7)||(x>n-8&&y<7)||(x<7&&y>n-8);const on=f?((x%6===0||y%6===0||(x>1&&x<5&&y>1&&y<5))||(x>n-8&&(x===n-7||x===n-1||y===0||y===6||(x>n-6&&x<n-2&&y>1&&y<5)))||(y>n-8&&(y===n-7||y===n-1||x===0||x===6||(x>1&&x<5&&y>n-6&&y<n-2)))):rnd()>.5;if(on)r+=`<rect x="${x}" y="${y}" width="1" height="1"/>`}return `<svg viewBox="-2 -2 29 29" class="qr" role="img" aria-label="QR code d’émargement"><rect x="-2" y="-2" width="29" height="29" fill="#fff"/><g fill="#14213D">${r}</g></svg>`}
+function emargHTML(){const now=new Date().toTimeString().slice(0,5);
+ return `<div class="emg">
+ <section class="panel emq"><div class="ph">QR code de la salle</div>${qrSVG()}<p class="note">Un seul QR code, affiché en salle ou imprimé. Il ouvre la page de signature ci-contre sur le téléphone du stagiaire.</p><div class="dfoot"><button class="btn sm" data-fo="QR code prêt à imprimer (A4)">Imprimer le QR code</button></div></section>
+ <section class="panel emp"><div class="ph">Page de signature <small>(ce que voit le stagiaire)</small></div>
+  <div class="phone"><b>Chicken Express · Hygiène alimentaire HACCP</b>
+   <label class="fld">Apprenant<select id="emS">${EM_ST.map(x=>`<option>${x}</option>`).join('')}</select></label>
+   <label class="fld">Date<select id="emD">${EM_J.map((j,i)=>`<option value="${j}" ${i===1?'selected':''}>Jour ${i+1} · ${j.split('-').reverse().join('/')}</option>`).join('')}</select></label>
+   <label class="fld">Demi-journée<select id="emH"><option value="m">Matin</option><option value="a">Après-midi</option></select></label>
+   <div class="fld">Signature<canvas id="emC" width="300" height="130" aria-label="Zone de signature"></canvas></div>
+   <div class="vacts" style="justify-content:space-between"><button class="btn sm ghost" id="emX">Effacer</button><button class="btn primary" id="emOk">Valider ma signature</button></div></div></section>
+ <section class="panel emw"><div class="ph">Feuille d’émargement · modèle Word n° 4<span class="sp"></span><small>remplie automatiquement</small></div>
+  ${EM_J.map((j,ji)=>`<div class="tw"><table class="t emt"><thead><tr><th>Jour ${ji+1} · ${j.split('-').reverse().join('/')}</th><th>Signature matin</th><th>Signature après-midi</th></tr></thead><tbody>${EM_ST.map(st=>`<tr><td>Stagiaire : ${st}</td>${['m','a'].map(h=>{const v=ui.sig[st+'|'+j+'|'+h];return `<td class="sigc">${v?`<img src="${v.img}" alt="Signature de ${st}"><small>${v.at}</small>`:''}</td>`}).join('')}</tr>`).join('')}<tr><td>Formateur : Rachid A.</td><td class="sigc"></td><td class="sigc"></td></tr></tbody></table></div>`).join('')}
+  <div class="dfoot" style="flex-wrap:wrap"><button class="btn sm" data-fo="Feuille d’émargement générée (Word et PDF) dans le dossier Drive">Générer la feuille</button><button class="btn sm" data-fo="Feuille vierge prête à imprimer, au nom des stagiaires">Imprimer la feuille papier (secours)</button><button class="btn sm" data-fo="Feuille papier signée scannée et rangée dans le dossier">Déposer la feuille papier signée</button><small>La feuille papier reste disponible en secours : imprimée vierge, signée à la main, puis scannée dans le dossier.</small></div></section></div>`}
+function bindEmarg(){const c=document.getElementById('emC'),x=c.getContext('2d');let d=false,last=null;x.lineWidth=2.2;x.lineCap='round';x.strokeStyle='#14213D';
+ const pos=e=>{const r=c.getBoundingClientRect(),t=e.touches?e.touches[0]:e;return [(t.clientX-r.left)*c.width/r.width,(t.clientY-r.top)*c.height/r.height]};
+ const down=e=>{d=true;last=pos(e);e.preventDefault()},move=e=>{if(!d)return;const p=pos(e);x.beginPath();x.moveTo(...last);x.lineTo(...p);x.stroke();last=p;e.preventDefault()},up=()=>d=false;
+ c.addEventListener('mousedown',down);c.addEventListener('mousemove',move);addEventListener('mouseup',up);c.addEventListener('touchstart',down,{passive:false});c.addEventListener('touchmove',move,{passive:false});c.addEventListener('touchend',up);
+ document.getElementById('emX').onclick=()=>x.clearRect(0,0,c.width,c.height);
+ document.getElementById('emOk').onclick=()=>{const blank=!x.getImageData(0,0,c.width,c.height).data.some(v=>v);if(blank)return toast('Signez dans le cadre avant de valider');const st=document.getElementById('emS').value,j=document.getElementById('emD').value,h=document.getElementById('emH').value;ui.sig[st+'|'+j+'|'+h]={img:c.toDataURL(),at:'signé le '+new Date().toLocaleDateString('fr-FR')+' à '+new Date().toTimeString().slice(0,5)};V.formations();toast('Signature enregistrée · '+st+' · '+(h==='m'?'matin':'après-midi'))};
+}
+/* ===== Formations : vue formateur v112 + audits ===== */
+V.formations=()=>{const T=[['sess','Sessions'],['emarg','Émargement'],['aud','Audits']];ui.foTab=ui.foTab||'sess';
+ const G=[['Dossier validé · contre-appel à faire','#3D4A8A','form',[['Snack Le Beffroi','PMS + Étiquetage · 08-11/12 · Rachid A. · 1 stagiaire · doit appeler le client · 06 12 34 56 78','Manque : contre-appel de l’établissement par Rachid','<button class="btn sm primary" data-fo="Contre-appel noté · dossier passé en « Formations planifiées »">Contre-appel fait</button>',1]]],
+  ['Formations planifiées · à réaliser','#1F6B75','form',[['Chicken Express','HACCP · 18-19/11 · Rachid A. · 3 stagiaires','Manque : formations à réaliser','',12],['Pizzeria Bella Vita','Pizzaiolo · 12-16/01 · Jordan K. · 2 stagiaires','Manque : formations à réaliser','',3]]],
+  ['Formé · documents signés à téléverser','#2E6E5E','form',[['Kebab Istanbul Grill','PMS + Étiquetage · terminées le 13/11 · Jordan K.','Manque : PMS · 4 documents signés, Étiquetage · 9 documents signés','',5]]],
+  ['Chez le commercial · dossier pas encore validé','#8A6418','com',[['Coiff’ & Style','dates à fixer dans le planning','Manque : dates des deux formations, formateur à attribuer','',10]]],
+  ['Terminé côté formateur · conformité, AKTO, facturation','#4B4A8F','adm',[['Capsule Corp','PMS + Étiquetage · terminées le 24/09','Conformité à contrôler par l’administration','',1]]]];
+ const body=ui.foTab==='emarg'?emargHTML():ui.foTab==='sess'?`<div class="filters"><select><option>Tous les formateurs</option><option>Rachid A.</option><option>Jordan K.</option><option>Sans formateur</option></select><input placeholder="Rechercher un dossier : établissement, ville, code postal ou département…" style="flex:1;min-width:200px">${role==='direction'||role==='admin'?'<button class="btn sm primary" data-fo="Programmation bloquée tant que le dossier n’est pas complet">Programmer une formation</button>':''}</div>
+  ${G.map(([l,c,o,L])=>`<section class="vgrp fgrp" style="--gc:${c}"><div class="ph"><i class="gdot"></i>${l}<span class="pill ${OWNL[o][1]}">${OWNL[o][0]}</span><span class="sp"></span><small>${L.length}</small></div><div class="tw"><table class="t"><thead><tr><th>Entreprise</th><th>Session</th><th class="num">Reste à faire</th><th class="num">Actions</th></tr></thead><tbody>${L.map(x=>`<tr data-rowopen="${x[4]}"><td><span class="name">${esc(x[0])}</span></td><td>${esc(x[1])}</td><td class="num" style="text-align:left">${esc(x[2])}</td><td class="num"><div class="vacts">${x[3]}<button class="btn sm openb" data-open="${x[4]}">Dossier ›</button></div></td></tr>`).join('')}</tbody></table></div></section>`).join('')}`
+ :`<div class="kpis" style="padding:14px"><div class="kpi"><small>Audits à 3 mois à planifier</small><b style="color:var(--warn)">4</b><div class="d" style="color:var(--ink2)">Formations terminées depuis plus de 3 mois</div></div><div class="kpi"><small>Audits de la semaine</small><b>3</b></div><div class="kpi"><small>Rapports d’audit</small><b>12</b><div class="d" style="color:var(--ink2)">PDF dans les dossiers Drive</div></div></div>
+  <section class="vgrp fgrp" style="--gc:#1F5F7A"><div class="ph"><i class="gdot"></i>Audits planifiés<span class="sp"></span><small>suivi à 3 mois · surveillance annuelle</small></div><div class="tw"><table class="t"><tbody>${[['Boulangerie Saint-Pierre','Audit de suivi à 3 mois · 17/11/2026 14:00 · Rachid A.','<span class="pill p-bad">En retard</span>',6],['Le Fournil Douaisien','Audit de suivi à 3 mois · 18/11/2026 14:00 · Mehdi S.','<span class="pill p-warn">Cette semaine</span>',11],['Kebab Istanbul Grill','Audit offert · 2 h · 20/11/2026 09:00 · Mehdi S.','<span class="pill p-info">Avant formation</span>',5]].map(x=>`<tr><td><span class="name">${x[0]}</span></td><td>${x[1]}</td><td>${x[2]}</td><td class="num"><div class="vacts"><button class="btn sm primary" data-fo="Ouvrirait l’audit guidé : 71 points en 9 zones, photos, rapport PDF">Lancer l’audit</button><button class="btn sm" data-fo="Audit réalisé : Conforme / Écarts mineurs / À revoir · nouvelle visite — prochain audit à +12 mois (+1 mois si à revoir)">Audit réalisé</button><button class="btn sm ghost">Reprogrammer · tournée</button></div></td></tr>`).join('')}</tbody></table></div></section>
+  <p class="note">Audit guidé : 9 zones (accès et extérieur, salle et comptoir, cuisine · locaux, cuisine · pratiques, froid, réception et réserve, plonge et déchets, personnel et vestiaires, documents à demander) · niveaux CRITIQUE (&lt; 24 h), IMPORTANT (&lt; 7 j), AMÉLIORATION (&lt; 30 j) · 3 audits maximum par établissement et par an.</p>`;
+ $v().innerHTML=head('Formations','Contre-appels, sessions, documents signés et audits')+`<section class="panel"><div class="tabs" role="tablist">${T.map(([k,l])=>`<button class="tab" role="tab" aria-selected="${ui.foTab===k}" data-fot="${k}">${l}</button>`).join('')}</div>${body}</section>`;
+ $v().querySelectorAll('[data-fot]').forEach(b=>b.onclick=()=>{ui.foTab=b.dataset.fot;V.formations()});
+ if(ui.foTab==='emarg')bindEmarg();
+ $v().querySelectorAll('[data-fo]').forEach(b=>b.onclick=()=>toast(b.dataset.fo));bindOpen();
+};
+/* ===== Facturation : écrans v112 (Financements, Factures émises, Factures reçues, Commissions) ===== */
+const GRF=[['rat','À rattacher à une entreprise','#7A2E8E',[['2610AF041050','Établissement non identifié · PLAN DE MAITRISE SANITAIRE','1 400 €','Rattacher']]],
+ ['dep','À déposer','#A4521F',[['Snack Le Beffroi','PMS + Étiquetage · Conforme · à déposer sur le portail AKTO','2 100 €','Déposer']]],
+ ['att','En attente d’accord','#8C2F4B',[['Youfood · 2610AF041033','Déposé le 23/10/2026 · relance prévue à 21 jours','1 400 €','Relancer'],['O Délices · 2610AF045301','Déposé le 12/11/2026','700 €','']]],
+ ['acc','Accordés · formation à venir','#1F6B75',[['Chicken Express · 2610AF0154','Accordé · formation les 18 et 19/11','2 100 €','']]],
+ ['afac','À facturer à l’OPCO','#56702A',[['Capsule Corp · 2610AF016672','Formation terminée le 22/09/2026 · aucune facture','2 400 €','Facturer']]],
+ ['blo','Pièces réclamées par l’OPCO','#B42828',[['Barclette 6 · facture 026','L’OPCO attend des pièces de règlement · depuis 112 jours','1 750 €','Envoyer les pièces']]],
+ ['fact','Facturés · paiement attendu','#7A6420',[['Factures 070, 071, 072','Facture en cours d’analyse à l’OPCO · mise en paiement à venir','5 100 €','']]],
+ ['ref','Refusés ou à corriger','#6B5B5B',[['Burger Station · 2606AF006701','Facture rejetée par l’OPCO · à corriger puis redéposer','1 050 €','Vérifier']]],
+ ['pay','Payés','#2F6B3F',[['Virement 2779724 · 10/11/2026','11 factures · dossier soldé · commissions dues','17 300 €','']]]];
+V.finances=()=>{const own=role==='terrain'||role==='phoneuse';if(own)ui.finTab='com';
+ const T=own?[['com','Mes commissions']]:[['opco','Financements'],['emises','Factures émises'],['recues','Factures reçues'],['com','Commissions']];
+ const row=(c,cols)=>`<tr>${cols.map((x,i)=>`<td class="${i===2?'num':i===3?'num':''}">${x}</td>`).join('')}</tr>`;
+ let body='';
+ if(ui.finTab==='opco')body=`<div class="kpis" style="padding:14px"><div class="kpi"><small>À déposer</small><b>${eur(2100)}</b></div><div class="kpi"><small>En attente d’accord</small><b>${eur(20300)}</b></div><div class="kpi"><small>À facturer</small><b style="color:var(--bad)">${eur(3800)}</b></div><div class="kpi"><small>À encaisser</small><b>${eur(11350)}</b></div><div class="kpi"><small>Bloqué · pièces réclamées</small><b style="color:var(--bad)">${eur(1750)}</b></div></div>
+  <div class="improw"><b>Imports des portails OPCO</b><small>à faire chaque lundi</small><button class="btn sm primary" data-go="aujourdhui">AKTO · importé le 16/11/2026</button><button class="btn sm">OPCO EP · jamais importé</button><button class="btn sm">OPCO Commerce · jamais importé</button><button class="btn sm ghost">Coller une liste de rattachements</button></div>
+  ${GRF.map(([k,l,c,L])=>`<section class="vgrp fgrp" style="--gc:${c}"><div class="ph"><i class="gdot"></i>${l}<span class="sp"></span><small>${L.length}</small></div><div class="tw"><table class="t"><thead><tr><th>Entreprise · dossier</th><th>Formation · situation</th><th class="num">Montant HT</th><th class="num">Action</th></tr></thead><tbody>${L.map(x=>row(c,[`<span class="name">${esc(x[0])}</span>`,esc(x[1]),x[2],x[3]?`<button class="btn sm ${['Facturer','Envoyer les pièces','Déposer'].includes(x[3])?'primary':''}" data-fa="${x[3]}">${x[3]}</button>`:''])).join('')}</tbody></table></div></section>`).join('')}`;
+ else if(ui.finTab==='emises')body=`<p class="note" style="padding-top:14px">Factures de PPA aux clients et aux OPCO. Un financement commun à plusieurs sessions se facture en une fois, quand la dernière session est terminée. Formations exonérées de TVA.</p>
+  <div class="kpis" style="padding:0 14px 14px"><div class="kpi"><small>À émettre</small><b>2</b></div><div class="kpi"><small>Encours</small><b>${eur(8900)}</b></div><div class="kpi"><small>En retard</small><b style="color:var(--bad)">${eur(2450)}</b></div><div class="kpi"><small>Encaissé OPCO (imports)</small><b>${eur(73395)}</b><div class="d" style="color:var(--ink2)">d’après les portails</div></div></div>
+  ${[['À émettre','#A4521F',[['Capsule Corp','PMS · AKTO · subrogation','2 400 €','<span class="pill p-warn">Contrôle des pièces en attente</span>'],['Kebab Istanbul Grill','HACCP · Entreprise','1 120 €','<button class="btn sm primary" data-fa="Facture F-2026-074 créée · échéance 19/12/2026 · mail préparé">Facturer</button>']]],
+    ['En retard','#B42828',[['F-2026-061 · AKTO','Échéance dépassée de 28 jours · relance niveau 1','1 400 €','<button class="btn sm" data-fa="Relance 2 préparée : « 2e relance — facture F-2026-061 »">Relance 2</button>']]],
+    ['Émises · dans les délais','#2F5D9E',[['F-2026-072 · AKTO','Échéance le 02/12/2026','1 750 €','<button class="btn sm" data-fa="Paiement enregistré">Réglée</button>']]],
+    ['Réglées','#2F6B3F',[['F-2026-069 · AKTO','Payée le 10/11/2026','1 750 €','']]]].map(([l,c,L])=>`<section class="vgrp fgrp" style="--gc:${c}"><div class="ph"><i class="gdot"></i>${l}<span class="sp"></span><small>${L.length}</small></div><div class="tw"><table class="t"><tbody>${L.map(x=>row(c,[`<span class="name">${x[0]}</span>`,x[1],x[2],x[3]])).join('')}</tbody></table></div></section>`).join('')}
+  <p class="note">Relances : niveau 1 « Rappel », niveau 2 à J+10 « 2e relance », niveau 3 « Mise en demeure » (8 jours, pénalités et indemnité de 40 €). Alerte urgente au-delà de 25 jours de retard.</p>`;
+ else if(ui.finTab==='recues')body=`<p class="note" style="padding-top:14px">Commissions de l’équipe : vous validez les lignes, la personne édite sa facture, vous la payez ici. Chaque paiement édite un bordereau de versement.</p>
+  <div class="kpis" style="padding:0 14px 14px"><div class="kpi"><small>À valider</small><b>3</b></div><div class="kpi"><small>Facture attendue</small><b>1</b></div><div class="kpi"><small>À payer</small><b>${eur(412)}</b></div><div class="kpi"><small>Payé en 2026</small><b>${eur(6890)}</b></div></div>
+  ${[['Commissions à valider · OPCO payé, à contrôler','#8A6418',[['Mehdi S.','Auto-entrepreneur · facturera après validation','262,50 €','<button class="btn sm ghost">Détail</button><button class="btn sm primary" data-fa="Commissions validées">Valider</button>'],['Sarah L.','Salariée · prime sans facture','87,50 €','<button class="btn sm ghost">Détail</button><button class="btn sm primary" data-fa="Commissions validées">Valider</button>']]],
+    ['À payer · factures reçues et primes salariées','#7A6420',[['Mehdi S.','Facture n° 014 du 12/11/2026 · sans TVA','412,00 €','<button class="btn sm ghost">Facture</button><button class="btn sm ghost">Refuser</button><button class="btn sm primary" data-fa="Paiement enregistré · bordereau BV-2026-019">Payer</button>']]],
+    ['Payées','#2F6B3F',[['Mehdi S.','Facture n° 013 · payée le 28/10/2026 · virement · bordereau BV-2026-018','389,00 €','<button class="btn sm ghost">Bordereau</button>']]]].map(([l,c,L])=>`<section class="vgrp fgrp" style="--gc:${c}"><div class="ph"><i class="gdot"></i>${l}</div><div class="tw"><table class="t"><tbody>${L.map(x=>row(c,[`<span class="name">${x[0]}</span>`,x[1],x[2],`<div class="vacts">${x[3]}</div>`])).join('')}</tbody></table></div></section>`).join('')}`;
+ else body=`<p class="note" style="padding-top:14px">Le paiement de l’OPCO lance un décompte de 30 jours : la commission devient facturable à la fin de ce délai, sur le montant HT versé. ${own?'La direction valide vos lignes, vous éditez votre facture ici, elle est payée dans Factures reçues.':'Vous validez les lignes ici, la personne édite sa facture, vous la payez dans Factures reçues.'}</p>
+  <div class="kpis" style="padding:0 14px 14px">${own?`<div class="kpi"><small>Dues · à recevoir</small><b>${eur(262)}</b></div><div class="kpi"><small>Décompte en cours</small><b>${eur(180)}</b><div class="d" style="color:var(--ink2)">prochaine : 10/12/2026</div></div><div class="kpi"><small>En attente du paiement OPCO</small><b>${eur(735)}</b></div><div class="kpi"><small>Reçues en 2026</small><b>${eur(3120)}</b></div>`:`<div class="kpi"><small>Dues · à verser</small><b>${eur(762)}</b></div><div class="kpi"><small>Décompte en cours</small><b>${eur(1730)}</b></div><div class="kpi"><small>En attente du paiement OPCO</small><b>${eur(2240)}</b></div><div class="kpi"><small>Versées en 2026</small><b>${eur(6890)}</b></div><div class="kpi"><small>À attribuer</small><b style="color:var(--warn)">4</b><div class="d" style="color:var(--ink2)">paiements sans bénéficiaire</div></div>`}</div>
+  <div class="filters"><span style="font-weight:600;color:var(--ink2);font-size:12.5px">Période et personne</span><select><option>Toutes les années</option><option>2026</option></select><select><option>Tous les mois</option></select>${own?'':'<select><option>Toute l’équipe</option></select>'}<select><option>Selon le paiement OPCO</option><option>Selon le versement de la prime</option></select><span class="sp"></span><button class="btn sm ghost">Relevé PDF</button><button class="btn sm ghost">Tableur (CSV)</button></div>
+  <div class="tw"><table class="t"><thead><tr><th>Client · dossier</th><th>État · barème</th><th class="num">HT payé par l’OPCO</th><th class="num">Commission</th></tr></thead><tbody>
+  ${[['Snack Le Beffroi · 2609AF003350','<span class="pill p-good">Validée · à facturer</span> Commercial · 10 % · OPCO payé le 10/11/2026','1 050 €','105,00 €'],['Youfood · 2610AF041033','<span class="pill p-warn">À valider</span> RDV pris par · 5 %','1 400 €','70,00 €'],['Chicken Express · 2610AF0154','<span class="pill p-info">Pas encore facturable</span> Commercial · son propre RDV · 15 % · le décompte de 30 jours démarre au paiement OPCO','2 100 €','315,00 €'],['Le Fournil Douaisien','<span class="pill p-good">Versée</span> Commercial · renouvellement · 15 % · versée le 28/10/2026','700 €','105,00 €']].map(x=>`<tr><td class="name">${x[0]}</td><td style="white-space:normal">${x[1]}</td><td class="num">${x[2]}</td><td class="num"><b>${x[3]}</b></td></tr>`).join('')}</tbody></table></div>
+  ${own?'<div class="dfoot"><button class="btn primary" data-fa="Facture de commission n° 015 éditée · PDF prêt">Éditer ma facture · 105,00 €</button><small>Auto-entrepreneur : numéro suivant le précédent, franchise de TVA (art. 293 B) ou TVA 20 %</small></div>':''}`;
+ $v().innerHTML=head(own?'Mes commissions':'Facturation','Ce qui est dû, ce qui est payé, ce qui est en retard',own?'':'<button class="btn primary" data-go="aujourdhui">Importer les exports AKTO</button>')+
+ `<section class="panel">${T.length>1?`<div class="tabs" role="tablist">${T.map(([k,l])=>`<button class="tab" role="tab" aria-selected="${ui.finTab===k}" data-ft="${k}">${l}</button>`).join('')}</div>`:''}${body}</section>`;
+ $v().querySelectorAll('[data-ft]').forEach(b=>b.onclick=()=>{ui.finTab=b.dataset.ft;V.finances()});
+ $v().querySelectorAll('[data-fa]').forEach(b=>b.onclick=()=>toast(b.dataset.fa.length>20?b.dataset.fa:'Maquette : '+b.dataset.fa));bindOpen();
+};
+/* ===== Graphiques (SVG, survol + tableau) ===== */
+const css=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+function niceScale(v){const r=v/4,p=Math.pow(10,Math.floor(Math.log10(r))),st=[1,2,2.5,5,10].find(m=>m*p>=r)*p;const max=Math.ceil(v/st)*st;return {max,st,n:Math.round(max/st)}}
+function niceMax(v){return niceScale(v).max}
+const cw=box=>Math.max(320,Math.round(box.clientWidth-24));
+function tipAt(box,html,x,y){let t=box.querySelector('.tip');if(!t){t=document.createElement('div');t.className='tip';box.appendChild(t)}t.innerHTML=html;t.hidden=false;const bw=box.clientWidth;const w=t.offsetWidth;t.style.left=Math.max(4,Math.min(bw-w-4,x+12))+'px';t.style.top=Math.max(0,y-10)+'px'}
+function tipOff(box){const t=box.querySelector('.tip');if(t)t.hidden=true}
+function groupedBars(box,labels,series,fmt){
+ const W=cw(box),H=260,L=52,R=8,T=12,B=28,pw=W-L-R,ph=H-T-B;
+ const sc=niceScale(Math.max(...series.flatMap(s=>s.v))),max=sc.max;const step=pw/labels.length,gw=step*.72,bw=(gw-2*(series.length-1))/series.length;
+ const y=v=>T+ph-v/max*ph;let g='';
+ for(let i=0;i<=sc.n;i++){const v=sc.st*i,yy=y(v);g+=`<line x1="${L}" x2="${W-R}" y1="${yy}" y2="${yy}" stroke="var(--grid)"/><text x="${L-8}" y="${yy+4}" text-anchor="end" font-size="11" fill="var(--axis-ink)">${fmt(v,true)}</text>`}
+ labels.forEach((lb,i)=>{const x0=L+i*step+(step-gw)/2;series.forEach((s,j)=>{const v=s.v[i],x=x0+j*(bw+2),yy=y(v),h=T+ph-yy;g+=`<path d="M${x},${T+ph}V${yy+Math.min(4,h)}q0,-4 4,-4h${bw-8}q4,0 4,4V${T+ph}Z" fill="${s.c}"/>`});
+  g+=`<text x="${L+i*step+step/2}" y="${H-8}" text-anchor="middle" font-size="11" fill="var(--axis-ink)">${lb}</text><rect class="hit" data-i="${i}" x="${L+i*step}" y="${T}" width="${step}" height="${ph}" fill="transparent"/>`});
+ g+=`<line x1="${L}" x2="${W-R}" y1="${T+ph}" y2="${T+ph}" stroke="var(--axis)"/>`;
+ box.innerHTML=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Graphique en barres">${g}</svg>`;
+ box.querySelectorAll('.hit').forEach(r=>{const i=+r.dataset.i;const sh=ev=>{const b=box.getBoundingClientRect();tipAt(box,`<b>${labels[i]}</b>`+series.map(s=>`<div class="r"><span><i style="background:${s.c}"></i>${s.n}</span><span>${fmt(s.v[i])}</span></div>`).join(''),ev.clientX-b.left,ev.clientY-b.top);r.setAttribute('fill','rgba(127,127,127,.08)')};r.onmousemove=sh;r.onmouseleave=()=>{tipOff(box);r.setAttribute('fill','transparent')};r.onclick=sh})}
+function lineChart(box,labels,vals,color,fmt,opts={}){
+ const W=cw(box),H=240,L=58,R=12,T=14,B=28,pw=W-L-R,ph=H-T-B;
+ const sc=niceScale(Math.max(...vals)),lo=0,hi=sc.max;const y=v=>T+ph-(v-lo)/(hi-lo)*ph,x=i=>L+i*pw/(labels.length-1);let g='';
+ for(let i=0;i<=sc.n;i++){const v=sc.st*i,yy=y(v);g+=`<line x1="${L}" x2="${W-R}" y1="${yy}" y2="${yy}" stroke="var(--grid)"/><text x="${L-8}" y="${yy+4}" text-anchor="end" font-size="11" fill="var(--axis-ink)">${fmt(v,true)}</text>`}
+ if(opts.threshold!=null){const yy=y(opts.threshold);g+=`<line x1="${L}" x2="${W-R}" y1="${yy}" y2="${yy}" stroke="var(--bad)" stroke-dasharray="4 4"/><text x="${L+6}" y="${yy+15}" font-size="11" fill="var(--bad)">${opts.thLabel}</text>`}
+ const pts=vals.map((v,i)=>`${x(i)},${y(v)}`).join(' ');
+ g+=`<polygon points="${x(0)},${y(Math.max(lo,0))} ${pts} ${x(vals.length-1)},${y(Math.max(lo,0))}" fill="${color}" opacity=".12"/><polyline points="${pts}" fill="none" stroke="${color}" stroke-width="2" stroke-linejoin="round"/>`;
+ labels.forEach((lb,i)=>{if(i%(opts.every||1)===0||i===labels.length-1)g+=`<text x="${x(i)}" y="${H-8}" text-anchor="middle" font-size="11" fill="var(--axis-ink)">${lb}</text>`});
+ const li=vals.length-1;g+=`<circle cx="${x(li)}" cy="${y(vals[li])}" r="4.5" fill="${color}" stroke="var(--chart-surface)" stroke-width="2"/><text x="${x(li)-8}" y="${y(vals[li])-10}" text-anchor="end" font-size="12" font-weight="600" fill="var(--ink)">${fmt(vals[li])}</text>`;
+ g+=`<line class="xh" y1="${T}" y2="${T+ph}" stroke="var(--axis)" visibility="hidden"/><circle class="xd" r="4.5" fill="${color}" stroke="var(--chart-surface)" stroke-width="2" visibility="hidden"/><rect class="hit" x="${L}" y="${T}" width="${pw}" height="${ph}" fill="transparent"/>`;
+ box.innerHTML=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Courbe">${g}</svg>`;
+ const svg=box.querySelector('svg'),hit=box.querySelector('.hit'),xh=box.querySelector('.xh'),xd=box.querySelector('.xd');
+ const mv=ev=>{const r=svg.getBoundingClientRect(),sx=(ev.clientX-r.left)/r.width*W;const i=Math.max(0,Math.min(vals.length-1,Math.round((sx-L)/pw*(labels.length-1))));xh.setAttribute('x1',x(i));xh.setAttribute('x2',x(i));xh.setAttribute('visibility','visible');xd.setAttribute('cx',x(i));xd.setAttribute('cy',y(vals[i]));xd.setAttribute('visibility','visible');const b=box.getBoundingClientRect();tipAt(box,`<b>${labels[i]}</b><div class="r"><span><i style="background:${color}"></i>${opts.name}</span><span>${fmt(vals[i])}</span></div>`,ev.clientX-b.left,ev.clientY-b.top)};
+ hit.onmousemove=mv;hit.onclick=mv;hit.onmouseleave=()=>{tipOff(box);xh.setAttribute('visibility','hidden');xd.setAttribute('visibility','hidden')}}
+function hBars(box,rows,color,fmt,opts={}){
+ const W=cw(box),rowH=34,L=Math.min(170,Math.round(W*.32)),R=110,H=rows.length*rowH+8,pw=W-L-R;const max=niceMax(Math.max(...rows.map(r=>r[1])));let g='';
+ rows.forEach(([lb,v,sub],i)=>{const yy=6+i*rowH,w=Math.max(2,v/max*pw),c=Array.isArray(color)?color[i]:color;
+  g+=`<text x="${L-10}" y="${yy+18}" text-anchor="end" font-size="12" fill="var(--ink)">${lb}</text><path d="M${L},${yy+6}h${w-4}q4,0 4,4v${rowH-22}q0,4 -4,4h-${w-4}Z" fill="${c}"/><text x="${L+w+8}" y="${yy+18}" font-size="12" font-weight="600" fill="var(--ink)">${fmt(v)}</text>${sub?`<text x="${L+w+8}" y="${yy+30}" font-size="10.5" fill="var(--axis-ink)">${sub}</text>`:''}<rect class="hit" data-i="${i}" x="0" y="${yy}" width="${W}" height="${rowH}" fill="transparent"/>`});
+ g+=`<line x1="${L}" x2="${L}" y1="2" y2="${H-2}" stroke="var(--axis)"/>`;
+ box.innerHTML=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Barres horizontales">${g}</svg>`;
+ box.querySelectorAll('.hit').forEach(r=>{const i=+r.dataset.i;const sh=ev=>{const b=box.getBoundingClientRect();tipAt(box,`<b>${rows[i][0]}</b><div class="r"><span>${opts.name}</span><span>${fmt(rows[i][1])}</span></div>${rows[i][2]?`<div class="r"><span>${rows[i][2]}</span></div>`:''}`,ev.clientX-b.left,ev.clientY-b.top)};r.onmousemove=sh;r.onclick=sh;r.onmouseleave=()=>tipOff(box)})}
+const tableHTML=(cols,rows)=>`<details class="tbl"><summary>Voir les chiffres en tableau</summary><div class="tw"><table class="t"><thead><tr>${cols.map((c,i)=>`<th class="${i?'num':''}">${c}</th>`).join('')}</tr></thead><tbody>${rows.map(r=>`<tr>${r.map((c,i)=>`<td class="${i?'num':''}">${c}</td>`).join('')}</tr>`).join('')}</tbody></table></div></details>`;
+
+/* ===== Rapports ===== */
+const MOIS=['déc.','janv.','févr.','mars','avr.','mai','juin','juil.','août','sept.','oct.','nov.'];
+const SIG=[6200,7400,8100,9800,7600,11200,10400,5200,4100,12600,8350,9860],FAC=[5400,6100,7300,8200,8900,7800,10600,9100,4300,6900,11800,8400],ENC=[3900,5200,5600,6900,7400,8100,6200,9800,7100,3600,7200,9300];
+const DELAI=[58,61,55,63,60,52,49,57,66,62,54,51];
+const SEM=['20 nov.','27 nov.','4 déc.','11 déc.','18 déc.','25 déc.','1 janv.','8 janv.','15 janv.','22 janv.','29 janv.','5 févr.','12 févr.','19 févr.'];
+const TRESO=[18400,16900,19600,17800,21300,20100,15900,14200,17600,22400,20800,18900,23600,25100];
+V.rapports=()=>{
+ const T=[['treso','Performance & trésorerie'],['com','Ventes'],['app','Prospection'],['form','Formations'],['qual','Qualiopi']];
+ const sumY=a=>a.reduce((x,y)=>x+y,0);
+ $v().innerHTML=head('Pilotage','Chiffres, trésorerie et Qualiopi','<select class="btn" aria-label="Période"><option>12 derniers mois</option><option>Année 2026</option><option>Ce trimestre</option></select>')+
+ `<div class="tabs" role="tablist" style="background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:0 6px">${T.map(([k,l])=>`<button class="tab" role="tab" aria-selected="${ui.repTab===k}" data-rp="${k}">${l}</button>`).join('')}</div>`+
+ (ui.repTab==='qual'?`<div class="rgrid"><section class="panel"><div class="ph">Prochain audit<span class="sp"></span><small>Préparation 43 %</small></div><div style="padding:0 16px 14px"><b style="font:600 28px var(--f-head);color:var(--accent)">J-148</b><div>Audit de surveillance Qualiopi · 16/04/2027</div></div>
+ <div class="ph">Cycle de certification 3 ans</div><ol class="chain" style="padding:0 12px 14px">${[['Certification initiale','15/03/2025',1],['Aujourd’hui','19/11/2026',2],['Surveillance','16/04/2027',0],['Renouvellement','15/03/2028',0]].map(([t,d,k])=>`<li class="${k===1?'done':k===2?'cur':''}"><span></span><b>${t}</b><small>${d}</small></li>`).join('')}</ol><p class="note">L’audit de surveillance a lieu entre le 14e et le 22e mois après la certification initiale.</p></section>
+ <section class="panel"><div class="ph">Préparation de l’audit<span class="sp"></span><small>3/7</small></div><ul class="plist">${[['Audit blanc interne réalisé',1],['Preuves formateurs à jour (ind. 21-22)',1],['Synthèse satisfaction à chaud et à froid (ind. 30)',0],['Registre des réclamations à jour (ind. 31)',1],['Veille réglementaire et métier documentée (ind. 23-25)',0],['Analyse des abandons et interruptions (ind. 12)',0],['Plan d’amélioration continue mis à jour (ind. 32)',0]].map(([t,k])=>`<li class="${k?'ok':''}"><span class="st">${k?'✓':''}</span><div class="grow"><b>${t}</b></div></li>`).join('')}</ul></section>
+ <section class="panel"><div class="ph">Les 7 critères · preuves réunies</div><ul class="plist">${[['1 · Information du public','ind. 1 à 3',100],['2 · Objectifs et adaptation des prestations','ind. 4 à 8',92],['3 · Accueil, suivi et évaluation','ind. 9 à 16',85],['4 · Moyens pédagogiques et techniques','ind. 17 à 20',100],['5 · Qualification des intervenants','ind. 21 et 22',70],['6 · Environnement professionnel et veille','ind. 23 à 29',78],['7 · Appréciations et réclamations','ind. 30 à 32',88]].map(([t,i,v])=>`<li><div class="grow"><b>${t}</b><small>${i}</small></div><span style="display:inline-block;width:90px;height:6px;border-radius:3px;background:var(--line2);overflow:hidden"><i style="display:block;height:100%;width:${v}%;background:${v>=90?'var(--good)':v>=80?'var(--accent)':'var(--warn)'}"></i></span><b style="width:44px;text-align:right">${v} %</b></li>`).join('')}</ul></section>
+ <section class="panel"><div class="ph">Échéances réglementaires</div><div class="tw"><table class="t"><thead><tr><th>Obligation</th><th>Date</th><th>Délai</th><th></th></tr></thead><tbody>${[['Bilan pédagogique et financier (BPF)','31/05/2027','dans 193 j','p-mut'],['Audit de surveillance Qualiopi','16/04/2027','dans 148 j','p-mut'],['Renouvellement certification Qualiopi','15/03/2028','dans 482 j','p-mut']].map(r=>`<tr><td class="name">${r[0]}</td><td>${r[1]}</td><td><span class="pill ${r[3]}">${r[2]}</span></td><td class="num"><button class="btn sm">Fait</button></td></tr>`).join('')}</tbody></table></div>
+ <div class="ph">Réclamations<span class="sp"></span><button class="btn sm">Nouvelle réclamation</button></div><ul class="plist"><li><div class="grow"><b>Retard de convocation</b><small>Tacos Factory · 04/11/2026 · réponse sous 15 jours (indicateur 31)</small></div><button class="btn sm primary">Clôturer</button></li></ul></section></div>`:ui.repTab!=='treso'?`<section class="panel"><div class="empty"><b>${T.find(t=>t[0]===ui.repTab)[1]}</b>Ce rapport reprendra les chiffres des anciens onglets « Performance ». La maquette détaille l’onglet Performance &amp; trésorerie.</div></section>`:
+ `<div class="kpis">
+  <div class="kpi"><small>Encaissé sur 12 mois</small><b>${eur(sumY(ENC))}</b><div class="d" style="color:var(--good)">+22 % vs 12 mois précédents</div></div>
+  <div class="kpi"><small>Reste à encaisser</small><b>${eur(18640)}</b><div class="d" style="color:var(--bad)">${eur(6220)} en retard de plus de 45 j</div></div>
+  <div class="kpi"><small>Trésorerie prévue au 19 févr.</small><b>${eur(TRESO[TRESO.length-1])}</b><div class="d" style="color:var(--ink2)">point bas ${eur(Math.min(...TRESO))} le 8 janv.</div></div>
+  <div class="kpi"><small>Délai moyen de paiement AKTO</small><b>51 j</b><div class="d" style="color:var(--good)">−3 j vs octobre</div></div>
+  <div class="kpi"><small>RDV transformés en signature</small><b>41 %</b><div class="d" style="color:var(--ink2)">38 signatures sur 93 RDV</div></div>
+ </div>
+ <div class="rgrid">
+  <section class="panel wide"><div class="ph">Chiffre d’affaires par mois<span class="sp"></span><small>Signé, facturé, encaissé</small></div>
+   <div class="legend"><span><i style="background:var(--s1)"></i>Signé</span><span><i style="background:var(--s2)"></i>Facturé</span><span><i style="background:var(--s3)"></i>Encaissé</span></div>
+   <div class="chart" id="cCA"></div>${tableHTML(['Mois','Signé','Facturé','Encaissé'],MOIS.map((m,i)=>[m,eur(SIG[i]),eur(FAC[i]),eur(ENC[i])]))}</section>
+  <section class="panel wide"><div class="ph">Trésorerie prévue sur 13 semaines<span class="sp"></span><small>Solde du compte, semaine par semaine</small></div>
+   <div class="chart" id="cTR"></div><p class="note">Calcul : solde actuel + paiements OPCO attendus à leur date habituelle − commissions à payer − charges fixes. Le trait rouge marque le seuil d’alerte de 15 000 €.</p>${tableHTML(['Semaine du','Solde prévu'],SEM.map((s,i)=>[s,eur(TRESO[i])]))}</section>
+  <section class="panel"><div class="ph">Reste à encaisser par financeur</div><div class="chart" id="cOP"></div>${tableHTML(['Financeur','Montant'],[['AKTO',eur(12880)],['OPCO EP',eur(3360)],['Clients directs',eur(1700)],['OPCO Commerce',eur(700)]])}</section>
+  <section class="panel"><div class="ph">Délai de paiement AKTO<span class="sp"></span><small>Jours entre facture et paiement</small></div><div class="chart" id="cDL"></div>${tableHTML(['Mois','Délai moyen'],MOIS.map((m,i)=>[m,DELAI[i]+' j']))}</section>
+  <section class="panel"><div class="ph">Des appels à la signature<span class="sp"></span><small>12 derniers mois</small></div><div class="chart" id="cFN"></div>${tableHTML(['Étape','Nombre'],[['Appels passés','1 284'],['Gérants intéressés','212'],['RDV pris','93'],['Signatures','38']])}</section>
+  <section class="panel"><div class="ph">Chiffre d’affaires par formation</div><div class="chart" id="cFO"></div>${tableHTML(['Formation','CA encaissé'],[['HACCP',eur(32480)],['PMS',eur(19250)],['Pizzaiolo',eur(14700)],['Coiffure',eur(9750)],['Étiquetage',eur(5600)]])}</section>
+ </div>`);
+ $v().querySelectorAll('[data-rp]').forEach(b=>b.onclick=()=>{ui.repTab=b.dataset.rp;V.rapports()});
+ if(ui.repTab!=='treso')return;
+ const fK=(v,ax)=>ax?(v>=1000?Math.round(v/1000)+' k€':Math.round(v)+' €'):eur(v);
+ groupedBars(document.getElementById('cCA'),MOIS,[{n:'Signé',v:SIG,c:css('--s1')},{n:'Facturé',v:FAC,c:css('--s2')},{n:'Encaissé',v:ENC,c:css('--s3')}],fK);
+ lineChart(document.getElementById('cTR'),SEM,TRESO,css('--s1'),fK,{name:'Solde prévu',threshold:15000,thLabel:'Seuil d’alerte 15 000 €',every:2});
+ hBars(document.getElementById('cOP'),[['AKTO',12880,'dont 5 100 € en retard'],['OPCO EP',3360,'dont 1 120 € en retard'],['Clients directs',1700,''],['OPCO Commerce',700,'']],css('--s1'),v=>eur(v),{name:'Reste à encaisser'});
+ lineChart(document.getElementById('cDL'),MOIS,DELAI,css('--s1'),(v,ax)=>Math.round(v)+' j',{name:'Délai moyen',every:2});
+ hBars(document.getElementById('cFN'),[['Appels passés',1284,''],['Gérants intéressés',212,'17 % des appels'],['RDV pris',93,'44 % des intéressés'],['Signatures',38,'41 % des RDV']],['#86b6ef','#5598e7','#2a78d6','#1c5cab'],v=>v.toLocaleString('fr-FR'),{name:'Nombre'});
+ hBars(document.getElementById('cFO'),[['HACCP',32480,''],['PMS',19250,''],['Pizzaiolo',14700,''],['Coiffure',9750,''],['Étiquetage',5600,'']],css('--s1'),v=>eur(v),{name:'CA encaissé'});
+};
+
+/* ===== Qualiopi / Paramètres ===== */
+V.qualiopi=()=>{ui.repTab='qual';location.replace('#rapports');return;$v().innerHTML=head('Qualiopi','Indicateurs, preuves et préparation d’audit')+`<section class="panel"><div class="empty"><b>Contenu repris de la version actuelle</b>Même fonctionnement, présenté avec le nouveau gabarit : liste des indicateurs, statut en couleur, preuves rattachées.</div></section>`};
+V.parametres=()=>{const T=[['equipe','Équipe & accès'],['auto','Automatisations'],['save','Sauvegardes']];ui.parTab=ui.parTab||'auto';
+ const RL=[['Chaque lundi','Import des exports AKTO, OPCO EP et OPCO Commerce','Tâche P1 pour Ayoub jusqu’à validation de l’import dans le CRM'],['Dès l’import','Dossier OPCO sans entreprise','Rattacher le dossier à l’entreprise'],['Dès l’import','Facture OPCO en « Attente pièces règlement »','Tâche urgente + mail d’envoi des justificatifs pré-rédigé'],['30 jours en analyse','Facture OPCO bloquée « En cours d’analyse »','Relance de l’OPCO avec le numéro de dossier'],['Dès l’import','Facture OPCO rejetée non régularisée','Vérifier : doublon ou facture à redéposer'],['J-30 avant la session','Dossier de financement non déposé','Alerte urgente + brouillon de demande de prise en charge'],['J-10 avant la session','Toujours pas d’accord de financement','Relancer l’OPCO avant l’entrée en salle'],['21 jours après le dépôt','OPCO sans réponse','Brouillon de relance avec le numéro de dossier'],['Dès l’inscription','Inscription CPF à valider sur EDOF','Rappel de validation avant l’entrée en formation'],['J-7 avant la session','Convocations non envoyées','Brouillon de convocation + règlement intérieur'],['Pendant la session','Émargements matin et après-midi','Suivi en direct depuis la borne de l’accueil'],['Dès la fin de la session','Session terminée non facturée','Facture en un clic, à l’OPCO (subrogation) ou à l’entreprise'],['Échéance dépassée','Facture impayée','Relance niveau 1, puis 2 à J+10, puis 3 (mise en demeure)'],['J+90 après la formation','Questionnaire entreprise à 3 mois','Envoi pré-rédigé (indicateur 30 Qualiopi)'],['J-60 avant l’échéance','Audit Qualiopi et obligations réglementaires','Plan de préparation + rappels'],['Dès réception','Réclamation ouverte','Traitement et réponse sous 15 jours (indicateur 31)'],['60 jours sans contact','Client à rappeler','Appel de courtoisie et proposition de recyclage']];
+ const body=ui.parTab==='auto'?`<div class="dsub">Liaison avec l’automatisation · dossier Drive + mail au commercial</div><div class="dgrid" style="padding:4px 16px 12px"><label class="fld">Adresse du webhook<input value="https://hook.eu1.make.com/g992l0…"></label></div><p class="note">Dès qu’une fiche passe en « RDV fixé », le CRM envoie la fiche à cette adresse : le dossier est créé dans Drive et le commercial reçoit son mail.</p>
+  <div class="dsub">Règles actives 17/17</div><ul class="plist">${RL.map(([w,t,a])=>`<li><div class="grow"><b>${t}</b><small>Quand · ${w} — Alors : ${a}</small></div><label class="sw"><input type="checkbox" checked aria-label="${t}"><i></i></label></li>`).join('')}</ul>`
+  :ui.parTab==='save'?`<ul class="plist"><li><div class="grow"><b>Sauvegarder maintenant</b><small>Toute la base dans un fichier · et copie automatique chaque nuit dans Google Drive</small></div><button class="btn sm primary">Sauvegarder</button></li><li><div class="grow"><b>Restaurer une sauvegarde</b><small>Fichier « ppa-pilot-donnees »</small></div><button class="btn sm">Restaurer</button></li></ul><div class="dsub">Remises à zéro · irréversibles, sauvegarde automatique avant chaque action</div><ul class="plist">${['Fiches & RDV saisis','Attributions de commissions','Codes d’accès','Droits par fonction','Adresse du webhook','Personnes ajoutées'].map(t=>`<li><div class="grow"><b>${t}</b></div><button class="btn sm ghost">Réinitialiser…</button></li>`).join('')}</ul>`
+  :`<ul class="plist">${Object.entries(ROLES).map(([k,r])=>`<li><span class="av">${r.ini}</span><div class="grow"><b>${r.nom}</b><small>${r.lab} · ${k==='terrain'?'auto-entrepreneur':k==='phoneuse'?'salariée':'salarié'} · accès : ${r.v.length} écrans</small></div><button class="btn sm">Modifier</button></li>`).join('')}</ul>`;
+ $v().innerHTML=head('Paramètres','Équipe, automatisations et sauvegardes')+`<section class="panel"><div class="tabs" role="tablist">${T.map(([k,l])=>`<button class="tab" role="tab" aria-selected="${ui.parTab===k}" data-pt="${k}">${l}</button>`).join('')}</div>${body}</section>`;
+ $v().querySelectorAll('[data-pt]').forEach(b=>b.onclick=()=>{ui.parTab=b.dataset.pt;V.parametres()})};
+
+/* repeindre les graphiques au changement de thème */
+let rz;addEventListener('resize',()=>{clearTimeout(rz);rz=setTimeout(()=>{if(route==='rapports')V.rapports();if(route==='agenda')V.agenda()},150)});
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{if(route==='rapports')V.rapports()});
+new MutationObserver(()=>{if(route==='rapports')V.rapports()}).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+
+/* recherche locale : ne filtre que la section affichée ; la recherche du haut renvoie toujours vers Entreprises */
+ui.lsv={};
+const lsKey=()=>{const t=$v().querySelector('.tab[aria-selected="true"]');return route+'|'+(t?t.textContent.trim():'')};
+const ROWS='tbody tr:not(.salx),.list li,.plist li,.card,.mini,.ev,.mi,.aglist li';
+function lsApply(q){const n=String(q||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').trim();let shown=0,tot=0;
+ $v().querySelectorAll(ROWS).forEach(el=>{if(el.closest('.lsearch,.phone,.dhead'))return;tot++;const t=el.textContent.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');const ok=!n||t.includes(n);el.style.display=ok?'':'none';if(ok)shown++});
+ $v().querySelectorAll('.vgrp,.col').forEach(g=>{const r=[...g.querySelectorAll(ROWS)];if(r.length)g.style.display=!n||r.some(x=>x.style.display!=='none')?'':'none'});
+ const c=$v().querySelector('.lsearch small');if(c)c.textContent=n?shown+' résultat'+(shown>1?'s':''):'';}
+function lsInject(){if(route==='aujourdhui'||route==='entreprises'||route.startsWith('fiche')||$v().querySelector('.lsearch'))return;
+ const tab=$v().querySelector('.tab[aria-selected="true"]'),sec=tab?tab.textContent.trim():(($v().querySelector('.vh h1')||{}).textContent||'cette page');
+ const box=document.createElement('div');box.className='lsearch';box.innerHTML=`<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input type="search" placeholder="Rechercher dans ${esc(sec)}…" aria-label="Rechercher dans ${esc(sec)}"><small></small>`;
+ const tabs=$v().querySelector('.panel > .tabs, .tabs');if(tabs)tabs.insertAdjacentElement('afterend',box);else{const vh=$v().querySelector('.vh');(vh||$v().firstChild).insertAdjacentElement('afterend',box)}
+ const i=box.querySelector('input'),k=lsKey();i.value=ui.lsv[k]||'';i.oninput=()=>{ui.lsv[lsKey()]=i.value;lsApply(i.value)};if(i.value)lsApply(i.value)}
+new MutationObserver(()=>lsInject()).observe(document.getElementById('view'),{childList:true});
+/* menu selon le rôle (démonstration) */
+document.body.classList.add('nv-light');
+(function(){const set=v=>{role=v;try{localStorage.setItem('ppa-role',v)}catch(e){};document.querySelectorAll('[data-rl]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.rl===v)));if(!ROLES[v].v.includes(route.startsWith('fiche')?'entreprises':route)&&route!=='parametres')go('aujourdhui');else render()};
+ document.querySelectorAll('[data-rl]').forEach(b=>b.onclick=()=>set(b.dataset.rl));document.querySelectorAll('[data-rl]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.rl===role)))})();
+render();
+</script>
