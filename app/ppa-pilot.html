@@ -910,7 +910,29 @@ V.appels=()=>{const mgr=role==='direction'||role==='admin';
 /* ===== Émargement : un seul QR code → page de signature → case du Word 04 ===== */
 const EM_ST=['BENALI Karim','DURAND Inès','MARTIN Yanis'],EM_J=['2026-11-18','2026-11-19'];ui.sig=ui.sig||{};
 function qrSVG(){let r='';const n=25;let seed=7;const rnd=()=>(seed=(seed*9301+49297)%233280)/233280;for(let y=0;y<n;y++)for(let x=0;x<n;x++){const f=(x<7&&y<7)||(x>n-8&&y<7)||(x<7&&y>n-8);const on=f?((x%6===0||y%6===0||(x>1&&x<5&&y>1&&y<5))||(x>n-8&&(x===n-7||x===n-1||y===0||y===6||(x>n-6&&x<n-2&&y>1&&y<5)))||(y>n-8&&(y===n-7||y===n-1||x===0||x===6||(x>1&&x<5&&y>n-6&&y<n-2)))):rnd()>.5;if(on)r+=`<rect x="${x}" y="${y}" width="1" height="1"/>`}return `<svg viewBox="-2 -2 29 29" class="qr" role="img" aria-label="QR code d’émargement"><rect x="-2" y="-2" width="29" height="29" fill="#fff"/><g fill="#14213D">${r}</g></svg>`}
-function emargHTML(){const now=new Date().toTimeString().slice(0,5);
+function emargJours(d){const out=[];const base=d.dates&&d.dates[0];if(!base)return out;const dd=new Date(base+'T12:00');while(out.length<4){if(dd.getDay()%6!==0)out.push({d:dd.getFullYear()+'-'+String(dd.getMonth()+1).padStart(2,'0')+'-'+String(dd.getDate()).padStart(2,'0')});dd.setDate(dd.getDate()+1)}return out}
+function emargTable(sh){const S=sh.data||{},jours=(S.jours||[]).map(j=>j.d||j),stag=S.stagiaires||[],sgs=S.signatures||[];
+ const find=(st,j,h)=>sgs.find(s=>s.stagiaire===st&&(s.jour===j)&&s.demi===h);
+ return `<section class="panel emw"><div class="ph">Signatures en direct · feuille d’émargement (modèle Word n° 4)<span class="sp"></span><small>${sgs.length} signature${sgs.length>1?'s':''}</small></div>
+  ${jours.length?jours.map((j,ji)=>`<div class="tw"><table class="t emt"><thead><tr><th>Jour ${ji+1} · ${String(j).split('-').reverse().join('/')}</th><th>Matin</th><th>Après-midi</th></tr></thead><tbody>${stag.map(st=>`<tr><td>${esc(st)}</td>${['m','a'].map(h=>{const v=find(st,j,h);return `<td class="sigc">${v?'<span class="pill p-good">✓ signé</span>':'<span style="color:var(--mut)">—</span>'}</td>`}).join('')}</tr>`).join('')}</tbody></table></div>`).join(''):'<p class="note">Aucun jour configuré.</p>'}
+ </section>`}
+function emargHTML(){
+ if(window.PPA_ADAPT&&PPA_ADAPT.real){
+  const cands=(PPA_ADAPT.ENTS||[]).map(e=>({e,d:dosOfE(e.id)})).filter(x=>x.d.sal&&x.d.sal.length&&x.d.dates&&x.d.dates[0]);
+  const sel=ui.emSel||(cands[0]&&cands[0].e.id)||'';
+  const sh=ui.emSheet;
+  return `<div class="emg">
+   <section class="panel emq"><div class="ph">QR code d’émargement</div>
+    <label class="fld">Établissement et session<select id="emEnt">${cands.length?cands.map(x=>`<option value="${x.e.id}" ${x.e.id===sel?'selected':''}>${esc(x.e.nom)} · ${x.d.sal.length} stagiaire(s)</option>`).join(''):'<option value="">Aucun dossier avec stagiaires et dates</option>'}</select></label>
+    <button class="btn primary" id="emCreate" ${sel?'':'disabled'} style="margin-top:8px">${sh?'Régénérer le QR code':'Créer le QR code d’émargement'}</button>
+    ${sh?`<div id="emQR" style="margin-top:14px;text-align:center">${sh.qr}</div>
+     <p class="note">Affichez ou imprimez ce QR en salle. Chaque stagiaire le scanne, choisit son nom, le jour, la demi-journée et signe sur son téléphone. Les signatures apparaissent ci-dessous en direct.</p>
+     <div class="dfoot" style="flex-wrap:wrap"><button class="btn sm" id="emPrint">Imprimer le QR</button><button class="btn sm" id="emRefresh">Actualiser</button><a class="btn sm ghost" href="${esc(sh.url)}" target="_blank" rel="noopener">Ouvrir la page de signature</a></div>`:'<p class="note">Choisissez l’établissement, puis créez le QR code. Il reste valable toute la session.</p>'}
+   </section>
+   ${sh?emargTable(sh):''}
+  </div>`;
+ }
+ const now=new Date().toTimeString().slice(0,5);
  return `<div class="emg">
  <section class="panel emq"><div class="ph">QR code de la salle</div>${qrSVG()}<p class="note">Un seul QR code, affiché en salle ou imprimé. Il ouvre la page de signature ci-contre sur le téléphone du stagiaire.</p><div class="dfoot"><button class="btn sm" data-fo="QR code prêt à imprimer (A4)">Imprimer le QR code</button></div></section>
  <section class="panel emp"><div class="ph">Page de signature <small>(ce que voit le stagiaire)</small></div>
@@ -923,7 +945,37 @@ function emargHTML(){const now=new Date().toTimeString().slice(0,5);
  <section class="panel emw"><div class="ph">Feuille d’émargement · modèle Word n° 4<span class="sp"></span><small>remplie automatiquement</small></div>
   ${EM_J.map((j,ji)=>`<div class="tw"><table class="t emt"><thead><tr><th>Jour ${ji+1} · ${j.split('-').reverse().join('/')}</th><th>Signature matin</th><th>Signature après-midi</th></tr></thead><tbody>${EM_ST.map(st=>`<tr><td>Stagiaire : ${st}</td>${['m','a'].map(h=>{const v=ui.sig[st+'|'+j+'|'+h];return `<td class="sigc">${v?`<img src="${v.img}" alt="Signature de ${st}"><small>${v.at}</small>`:''}</td>`}).join('')}</tr>`).join('')}<tr><td>Formateur : Rachid A.</td><td class="sigc"></td><td class="sigc"></td></tr></tbody></table></div>`).join('')}
   <div class="dfoot" style="flex-wrap:wrap"><button class="btn sm" data-fo="Feuille d’émargement générée (Word et PDF) dans le dossier Drive">Générer la feuille</button><button class="btn sm" data-fo="Feuille vierge prête à imprimer, au nom des stagiaires">Imprimer la feuille papier (secours)</button><button class="btn sm" data-fo="Feuille papier signée scannée et rangée dans le dossier">Déposer la feuille papier signée</button><small>La feuille papier reste disponible en secours : imprimée vierge, signée à la main, puis scannée dans le dossier.</small></div></section></div>`}
-function bindEmarg(){const c=document.getElementById('emC'),x=c.getContext('2d');let d=false,last=null;x.lineWidth=2.2;x.lineCap='round';x.strokeStyle='#14213D';
+function emargLoadQR(){return new Promise((res,rej)=>{if(window.qrcode)return res();const L=(window.PPA&&PPA.lib)||'../lib/';const s=document.createElement('script');s.src=L+'qrcode-generator-1.4.4.min.js';s.onload=res;s.onerror=()=>rej(new Error('QR indisponible'));document.head.appendChild(s)})}
+function emargStop(){if(window.__emPoll){clearInterval(window.__emPoll);window.__emPoll=null}}
+async function emargRefresh(){const sh=ui.emSheet;if(!sh||!window.PPA||!PPA.sync)return;try{const {data,error}=await PPA.sync.sb.rpc('emarg_get_sheet',{p_token:sh.token});if(!error&&data){sh.data=data;if(route==='formations'&&ui.foTab==='emarg')V.formations()}}catch(e){}}
+async function emargCreate(entId){
+ const e=(PPA_ADAPT.ENTS||[]).find(x=>x.id===entId);if(!e)return;const d=dosOfE(entId);
+ const jours=emargJours(d),stag=d.sal.map(s=>[s.prenom,s.nom].filter(Boolean).join(' ').trim()).filter(Boolean);
+ if(!jours.length)return toast('Fixez d’abord le premier jour de formation dans le dossier');
+ if(!stag.length)return toast('Ajoutez au moins un stagiaire dans le dossier');
+ toast('Création de la feuille…');
+ try{
+  await emargLoadQR();
+  const titre=e.nom+' · Hygiène alimentaire';
+  const {data,error}=await PPA.sync.sb.rpc('emarg_create_sheet',{p_session_ref:entId,p_titre:titre,p_jours:jours,p_stagiaires:stag});
+  if(error||!data||!data.ok)throw new Error((data&&data.err)||(error&&error.message)||'Erreur');
+  const url=new URL('emargement.html#'+data.token,location.href).href;
+  const qr=qrcode(0,'M');qr.addData(url);qr.make();
+  ui.emSheet={token:data.token,url,qr:qr.createSvgTag({cellSize:5,margin:2,scalable:true}),data:{titre,jours,stagiaires:stag,signatures:[]}};
+  emargStop();window.__emPoll=setInterval(emargRefresh,5000);
+  V.formations();emargRefresh();toast('QR code prêt · '+stag.length+' stagiaire(s)');
+ }catch(err){toast('Impossible : '+(err&&err.message||err))}
+}
+function bindEmargReal(){
+ const sel=document.getElementById('emEnt');if(sel)sel.onchange=()=>{ui.emSel=sel.value};
+ const cr=document.getElementById('emCreate');if(cr)cr.onclick=()=>emargCreate((sel&&sel.value)||ui.emSel);
+ const rf=document.getElementById('emRefresh');if(rf)rf.onclick=emargRefresh;
+ const pr=document.getElementById('emPrint');if(pr)pr.onclick=()=>{const sh=ui.emSheet;if(!sh)return;const w=window.open('','_blank');if(!w)return toast('Autorisez les fenêtres pour imprimer');w.document.write('<title>QR émargement</title><body style="text-align:center;font:16px system-ui;padding:40px">'+(sh.data&&sh.data.titre?'<h2>'+sh.data.titre+'</h2>':'')+'<div style="max-width:360px;margin:0 auto">'+sh.qr+'</div><p>Scannez pour signer la feuille d’émargement.</p></body>');w.document.close();setTimeout(()=>w.print(),300)};
+ if(ui.emSheet&&!window.__emPoll){window.__emPoll=setInterval(emargRefresh,5000)}
+}
+function bindEmarg(){
+ if(window.PPA_ADAPT&&PPA_ADAPT.real){bindEmargReal();return}
+ const c=document.getElementById('emC'),x=c.getContext('2d');let d=false,last=null;x.lineWidth=2.2;x.lineCap='round';x.strokeStyle='#14213D';
  const pos=e=>{const r=c.getBoundingClientRect(),t=e.touches?e.touches[0]:e;return [(t.clientX-r.left)*c.width/r.width,(t.clientY-r.top)*c.height/r.height]};
  const down=e=>{d=true;last=pos(e);e.preventDefault()},move=e=>{if(!d)return;const p=pos(e);x.beginPath();x.moveTo(...last);x.lineTo(...p);x.stroke();last=p;e.preventDefault()},up=()=>d=false;
  c.addEventListener('mousedown',down);c.addEventListener('mousemove',move);addEventListener('mouseup',up);c.addEventListener('touchstart',down,{passive:false});c.addEventListener('touchmove',move,{passive:false});c.addEventListener('touchend',up);
