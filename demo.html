@@ -227,7 +227,15 @@ details.tbl .t td,details.tbl .t th{padding:6px 10px}
  .side>.flow,.side>.ngroup,.side>.flow>.fstep{display:contents}
  .side>.navgrp{display:none}
  .nav{flex-direction:column;gap:0;padding:8px 7px;width:auto;min-width:0;align-items:center;justify-content:center;height:40px}
- .nav span{display:none}.nav svg{width:22px;height:22px;display:block}.nav .cnt{position:absolute;margin-top:-6px;margin-left:14px}}
+ .nav span{display:none}.nav svg{width:22px;height:22px;display:block}.nav .cnt{position:absolute;margin-top:-6px;margin-left:14px}
+ /* tableaux : colonnes dimensionnées au contenu + défilement horizontal (plus de chevauchement) */
+ .tw{overflow-x:auto;-webkit-overflow-scrolling:touch}
+ .fgrp .t{table-layout:auto!important}
+ .fgrp .t td:first-child,.fgrp .t th:first-child,.fgrp .t td:nth-child(3),.fgrp .t th:nth-child(3),.fgrp .t td:nth-child(4),.fgrp .t th:nth-child(4){width:auto!important}
+ .tw .t{min-width:600px}
+ /* onglets : défilement horizontal fluide, sans barre visible */
+ .tabs{-webkit-overflow-scrolling:touch;scrollbar-width:none}.tabs::-webkit-scrollbar{display:none}
+ .tabs .tab{white-space:nowrap}}
 
 /* ===== Menu latéral clair ===== */
 .ngroup{display:flex;flex-direction:column;gap:2px;padding:6px 0}
