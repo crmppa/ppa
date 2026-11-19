@@ -12,6 +12,12 @@ import sys
 src, datajs, out = sys.argv[1:4]
 s = open(src, encoding='utf-8').read()
 adapter = open(datajs, encoding='utf-8').read()
+import os as _os
+_dir = _os.path.dirname(datajs)
+docsjs_path = _os.path.join(_dir, 'ppa-docs.js')
+docs = open(docsjs_path, encoding='utf-8').read() if _os.path.exists(docsjs_path) else ''
+tpljs_path = _os.path.join(_dir, 'ppa-tpl.js')
+tpl = open(tpljs_path, encoding='utf-8').read() if _os.path.exists(tpljs_path) else ''
 n = 0
 
 def R(a, b, cnt=1):
@@ -23,7 +29,12 @@ def R(a, b, cnt=1):
 
 # 1. inline de la couche données avant le script applicatif
 anchor = '<script>\n/* ===== Icônes ===== */'
-R(anchor, '<script>\n/* ---- couche de données réelle (inline) ---- */\n' + adapter + '\n</script>\n' + anchor)
+inline = '<script>\n/* PPA-OBF-BASE ---- couche de données réelle (inline) ---- */\n' + adapter + '\n</script>\n'
+if tpl:
+    inline += '<script>\n/* ---- modèles Word (inline, sauté par l\'obfuscateur) ---- */\n' + tpl + '\n</script>\n'
+if docs:
+    inline += '<script>\n/* PPA-OBF-BASE ---- usine à documents (inline) ---- */\n' + docs + '\n</script>\n'
+R(anchor, inline + anchor)
 
 # 2. déclarations réassignables (const -> let)
 for name, head in [('TEAM', "const TEAM={RA:"), ('ENTS', "const ENTS=["),

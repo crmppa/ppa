@@ -752,7 +752,7 @@ function dosHTML(e){const d=dosOfE(e.id),c=chain(d),st=CSTEP[c.idx],SO=d.mode!==
  ${SF?'':sec('form','Formation et documents signés',`
   <ul class="plist"><li class="${d.ctrF?'ok':''}"><span class="st">${d.ctrF?'✓':''}</span><div class="grow"><b>Contre-appel de l’établissement</b><small>${d.ctrF?'Fait':'Le formateur confirme les dates et les stagiaires avec le gérant'}</small></div>${can('form')&&!d.ctrF&&c.idx>=1?'<button class="btn sm primary" id="ctrF">Contre-appel fait</button>':''}</li>
   <li class="${d.formed?'ok':''}"><span class="st">${d.formed?'✓':''}</span><div class="grow"><b>Formations réalisées</b><small>${d.dates[0]?'PMS le '+d.dates[0].split('-').reverse().join('/'):'dates à fixer'}${d.dates[1]?' · Étiquetage le '+d.dates[1].split('-').reverse().join('/'):''}</small></div>${can('form')&&!d.formed&&c.idx>=2?'<button class="btn sm" id="formed">Marquer réalisées</button>':''}</li></ul>
-  ${FORMS.map(([sf,nm])=>`<div class="dsub">${nm} · documents signés à téléverser</div><ul class="plist">${DOC9.map(([k,l],i)=>up(k+sf,String(i+1)+' · '+l,d.doc[k+sf],'form')).join('')}</ul>`).join('')}
+  ${FORMS.map(([sf,nm])=>`<div class="dsub">${nm}</div><div class="dbar" style="margin:4px 0 8px"><button class="btn sm primary" data-gen="${sf}">Générer les 9 documents Word · ${nm}</button><small>Pré-remplis (établissement, stagiaires, dates, formateur) · à imprimer et faire signer</small></div><div class="dsub" style="font-weight:600">Documents signés à téléverser</div><ul class="plist">${DOC9.map(([k,l],i)=>up(k+sf,String(i+1)+' · '+l,d.doc[k+sf],'form')).join('')}</ul>`).join('')}
   ${can('form')&&c.idx===3&&c.miss.length===1&&c.miss[0].startsWith('validation')?'<div class="dfoot"><button class="btn primary" id="vForm">Valider et transmettre à l’administration</button></div>':''}`,[1,2,3])}
  ${sec('adm','Contrôle, dépôt AKTO et facturation',`<ul class="plist">
   ${SF?'':`<li class="${d.ctl?'ok':''}"><span class="st">${d.ctl?'✓':''}</span><div class="grow"><b>Contrôle de conformité du dossier</b><small>${d.ctl?'Conforme':'Vérifier les documents signés avant le dépôt'}</small></div>${can('adm')&&c.idx===4?'<button class="btn sm primary" id="ctlOk">Conforme</button><button class="btn sm" id="ctlNo">Refuser avec motif</button>':''}</li>`}
@@ -777,6 +777,14 @@ function bindDos(e){const d=dosOfE(e.id),re=()=>V.fiche(),v=id=>document.getElem
  const fi=v('dFile');let tgt=null;
  $v().querySelectorAll('[data-up],[data-scan],[data-paie]').forEach(b=>b.onclick=()=>{if(b.dataset.scan){const k=b.dataset.scan;(k in d.has||k==='kbis'||k==='cni'?d.has:d.doc)[k]='Scan_'+k.replace(':b','_etiq')+'.pdf';re();return toast('Pages photographiées réunies en un PDF')}tgt=b.dataset.up||('paie:'+b.dataset.paie);fi.value='';fi.click()});
  fi.onchange=()=>{const f=fi.files[0];if(!f||!tgt)return;if(tgt.startsWith('paie:'))d.sal[+tgt.slice(5)].paie=f.name;else if(tgt==='kbis'||tgt==='cni')d.has[tgt]=f.name;else d.doc[tgt]=f.name;re();toast('Déposé dans le dossier Drive')};
+ $v().querySelectorAll('[data-gen]').forEach(b=>b.onclick=async()=>{
+   if(!window.PPA_DOCS){toast('Génération indisponible en démo');return}
+   if(!(d.sal&&d.sal.length)){toast('Ajoutez au moins un salarié stagiaire avant de générer');return}
+   const sf=b.dataset.gen,def=sf===':b'?{prog:'Etiquetage',titre:'Étiquetage et traçabilité',dateIdx:1}:{prog:'PMS',titre:'Plan de maîtrise sanitaire',dateIdx:0};
+   b.disabled=true;const txt=b.textContent;b.textContent='Génération…';toast('Préparation des documents…');
+   try{const r=await PPA_DOCS.generate(e,d,def,TEAM);toast(r.count+' documents Word téléchargés ('+def.titre+')')}
+   catch(err){toast('Erreur génération : '+(err&&err.message||err))}
+   finally{b.disabled=false;b.textContent=txt}});
  on('vCom',()=>{d.valCom=true;re();toast('Dossier validé · transmis au formateur pour le contre-appel')});
  on('ctrF',()=>{d.ctrF=true;re()});on('formed',()=>{d.formed=true;re()});
  on('vForm',()=>{d.valForm=true;re();toast('Transmis à l’administration pour contrôle')});
