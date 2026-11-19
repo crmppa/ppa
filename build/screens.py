@@ -1,23 +1,24 @@
-# Écrans nouveaux (ajouts v2). Appliqué APRÈS skin.py (le menu a déjà été renommé).
+# Écrans nouveaux (v2) : Performance & trésorerie, Réclamations, BPF. Appliqué APRÈS skin.py.
 import sys,os
 def apply(s):
     n=0
     def R(a,b):
         nonlocal s,n
         assert s.count(a)==1,('écran: ancre introuvable: '+a[:80]); s=s.replace(a,b); n+=1
-    # 1. onglet dans TABS
+    HERE=os.path.dirname(os.path.abspath(__file__))
+    rd=lambda f:open(os.path.join(HERE,f),encoding='utf-8').read()
+    # 1. onglets
     R("qualiopi:['Qualiopi','Qualité et conformité']",
-      "perfTreso:['Performance & trésorerie','CA, encaissements, délais, trésorerie'],qualiopi:['Qualiopi','Qualité et conformité']")
-    # 2. dans le groupe Pilotage (déjà renommé par skin)
-    R("['reports','Pilotage','tdb',['qualiopi']]","['reports','Pilotage','tdb',['perfTreso','qualiopi']]")
+      "perfTreso:['Performance & trésorerie','CA, encaissements, délais, trésorerie'],reclam:['Réclamations','Registre Qualiopi · réponses et actions'],bpf:['Bilan BPF','Bilan pédagogique et financier annuel'],qualiopi:['Qualiopi','Qualité et conformité']")
+    # 2. groupe Pilotage (déjà renommé par skin)
+    R("['reports','Pilotage','tdb',['qualiopi']]","['reports','Pilotage','tdb',['perfTreso','reclam','bpf','qualiopi']]")
     # 3. accès admin
-    R("...(t==='formateur'||t==='admin'?['agendaF','audits']:[])","...(t==='formateur'||t==='admin'?['agendaF','audits']:[]),...(t==='admin'?['perfTreso']:[])")
-    # 4. enregistrer la vue
-    R("const VIEWS={carte2:V_carte2,","const VIEWS={perfTreso:V_perfTreso,carte2:V_carte2,")
-    # 5. injecter le code de l'écran avant VIEWS
-    code=open(os.path.join(os.path.dirname(os.path.abspath(__file__)),'perf_treso.js'),encoding='utf-8').read()
-    R("const VIEWS={perfTreso:V_perfTreso,","\n"+code+"\nconst VIEWS={perfTreso:V_perfTreso,")
-    # 6. gestionnaire du solde + styles, avant la balise app
+    R("...(t==='formateur'||t==='admin'?['agendaF','audits']:[])","...(t==='formateur'||t==='admin'?['agendaF','audits']:[]),...(t==='admin'?['perfTreso','reclam','bpf']:[])")
+    # 4. enregistrer les vues + injecter le code avant VIEWS
+    R("const VIEWS={carte2:V_carte2,","const VIEWS={perfTreso:V_perfTreso,reclam:V_reclam,bpf:V_bpf,carte2:V_carte2,")
+    R("const VIEWS={perfTreso:V_perfTreso,reclam:V_reclam,bpf:V_bpf,",
+      "\n"+rd('perf_treso.js')+"\n"+rd('reclam.js')+"\n"+rd('bpf.js')+"\nconst VIEWS={perfTreso:V_perfTreso,reclam:V_reclam,bpf:V_bpf,")
+    # 5. gestionnaire du solde (perf/trésorerie)
     extra=r"""<script>
 document.addEventListener('click',function(e){var t=e.target.closest&&e.target.closest('[data-a="ptSolde"]');if(!t)return;
  var cur=(window.db&&db.conf&&db.conf.solde)||'';var v=prompt('Solde actuel du compte bancaire (€) :',cur);if(v===null)return;
