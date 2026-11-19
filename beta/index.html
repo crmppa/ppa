@@ -1,0 +1,80 @@
+<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow"><meta name="theme-color" content="#14213D"><link rel="icon" href="../icon.png"><title>PPA Pilot</title>
+<style>
+:root{--bg:#F5F6F8;--panel:#fff;--ink:#16213A;--ink2:#4A5468;--line:#D9DEE5;--accent:#2456C7;--bad:#B42828;--ok:#0B7A0B}
+@media (prefers-color-scheme:dark){:root{--bg:#0F141E;--panel:#171D2A;--ink:#E8ECF4;--ink2:#B5BDCD;--line:#2A3243;--accent:#6E9BFF;--bad:#FF8A8A;--ok:#5FD25F}}
+*{box-sizing:border-box}html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--ink);font:15px/1.5 "Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif;display:grid;place-items:center;padding:16px}
+.box{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:28px;width:min(400px,100%)}
+.logo{width:48px;height:48px;border-radius:10px;background:#14213D;color:#fff;display:grid;place-items:center;font-weight:700;letter-spacing:.06em;margin-bottom:14px}
+h1{font-size:22px;margin:0 0 4px}p{margin:0 0 16px;color:var(--ink2)}
+label{display:block;font-size:13px;font-weight:600;color:var(--ink2);margin:10px 0 4px}
+input{width:100%;border:1px solid var(--line);border-radius:8px;padding:10px 12px;font:inherit;background:var(--panel);color:var(--ink)}
+input:focus{outline:2px solid var(--accent);outline-offset:1px}
+button{margin-top:16px;width:100%;border:0;border-radius:8px;background:var(--accent);color:#fff;font:600 15px inherit;padding:12px;cursor:pointer}
+button:disabled{opacity:.6}
+.link{background:none;color:var(--accent);padding:6px 0 0;margin:0;font-weight:600;font-size:13.5px;width:auto}
+#msg{margin-top:12px;min-height:20px;font-size:14px}#msg.err{color:var(--bad)}#msg.ok{color:var(--ok)}
+.bar{height:4px;background:var(--line);border-radius:2px;overflow:hidden;margin-top:14px}.bar i{display:block;height:100%;width:0;background:var(--accent);transition:width .3s}
+[hidden]{display:none!important}
+</style></head><body>
+<div class="box">
+ <div class="logo">PPA</div><h1>PPA Pilot</h1>
+ <form id="fLogin" hidden><p>Connectez-vous avec votre adresse e-mail.</p>
+  <label for="em">E-mail</label><input id="em" type="email" autocomplete="username" required>
+  <label for="pw">Mot de passe</label><input id="pw" type="password" autocomplete="current-password" required>
+  <button id="go" type="submit">Se connecter</button><button class="link" type="button" id="forgot">Mot de passe oublié ?</button></form>
+ <form id="fNew" hidden><p>Choisissez votre mot de passe (8 caractères minimum).</p>
+  <label for="np">Nouveau mot de passe</label><input id="np" type="password" autocomplete="new-password" minlength="8" required>
+  <button type="submit">Enregistrer et entrer</button></form>
+ <div id="wait" hidden><p id="wt">Chargement…</p><div class="bar"><i id="bar"></i></div></div>
+ <div id="msg" role="status"></div>
+</div>
+<script src="../lib/supabase-js-2.45.4.min.js"></script>
+<script src="../app/ppa-sync.js"></script>
+<script>
+(function(){
+const URL='https://nzecrjairbkrnprjyrzm.supabase.co';
+const KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im56ZWNyamFpcmJrcm5wcmp5cnptIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTUwNTY3MzEsImV4cCI6MjExMDYzMjczMX0.-sI9jD4EXdI5EC9rkaL3L-POntXQtrP4RjeY5ga3lnM';
+const $=i=>document.getElementById(i),msg=(t,k)=>{$('msg').textContent=t||'';$('msg').className=k||''};
+const show=id=>['fLogin','fNew','wait'].forEach(x=>$(x).hidden=x!==id);
+const prog=(p,t)=>{$('bar').style.width=p+'%';if(t)$('wt').textContent=t};
+let badgeEl=null,last=['sync',''];
+const S=PpaSync({url:URL,key:KEY,onState:(st,m)=>{last=[st,m];window.PPA&&PPA.badge&&PPA.badge()}});
+window.PPA={sync:S,lib:'../lib/',
+ logout:async()=>{try{await S.signOut()}catch(e){}try{localStorage.removeItem('ppa-ui-who');localStorage.removeItem('ppa-pilot-v4')}catch(e){}location.replace(location.pathname)},
+ badge:()=>{if(!document.body)return;if(!badgeEl||!document.body.contains(badgeEl)){badgeEl=document.createElement('div');badgeEl.style.cssText='position:fixed;left:12px;bottom:10px;z-index:60;border:1px solid #d9dee5;background:#fff;color:#4a5468;border-radius:999px;padding:5px 12px;font:600 11.5px system-ui,sans-serif;box-shadow:0 2px 8px rgba(0,0,0,.12)';document.body.appendChild(badgeEl)}
+  const c={ok:'#12b886',sync:'#2563EB',err:'#e03131'}[last[0]]||'#868e96';badgeEl.innerHTML='<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:'+c+';margin-right:7px"></span>'+(last[1]||'Synchronisé')}};
+
+async function enter(){
+ show('wait');msg('');prog(10,'Vérification du compte…');
+ const me=await S.whoAmI();
+ if(!me){show('fLogin');return msg('Ce compte n’est pas encore rattaché à l’équipe PPA. Demandez à la direction de l’ajouter.','err')}
+ if(!me.active){show('fLogin');return msg('Ce compte est désactivé.','err')}
+ prog(35,'Chargement de vos dossiers…');
+ const db=await S.load();
+ try{if(db.v===4&&db.sessions)localStorage.setItem('ppa-pilot-v4',JSON.stringify(db));else localStorage.removeItem('ppa-pilot-v4');
+  localStorage.setItem('ppa-ui-who',JSON.stringify(me.id));localStorage.setItem('ppa-ui-whoK',JSON.stringify(null))}catch(e){}
+ prog(65,'Chargement de l’application…');
+ const {data:v,error:e1}=await S.sb.from('app_files').select('version').eq('name','app').maybeSingle();
+ if(e1||!v)throw new Error('Application indisponible pour le moment.');
+ let code=null,cache=null;
+ try{cache=await caches.open('ppa-app');const r=await cache.match('app-'+v.version);if(r)code=await r.text()}catch(e){}
+ if(!code){const {data,error}=await S.sb.from('app_files').select('content').eq('name','app').single();if(error)throw error;code=data.content;
+  try{if(cache){(await cache.keys()).forEach(k=>cache.delete(k));await cache.put('app-'+v.version,new Response(code))}}catch(e){}}
+ prog(100,'Ouverture…');
+ document.open();document.write(code);document.close();
+}
+const fail=e=>{show('fLogin');msg(String(e&&e.message||e).replace('Invalid login credentials','E-mail ou mot de passe incorrect.'),'err')};
+
+$('fLogin').onsubmit=async ev=>{ev.preventDefault();$('go').disabled=true;msg('Connexion…');
+ const {error}=await S.signIn($('em').value.trim(),$('pw').value);$('go').disabled=false;if(error)return fail(error);enter().catch(fail)};
+$('forgot').onclick=async()=>{const em=$('em').value.trim();if(!em)return msg('Saisissez d’abord votre e-mail ci-dessus.','err');
+ const {error}=await S.resetPassword(em);msg(error?error.message:'Si ce compte existe, un e-mail vient d’être envoyé pour choisir un nouveau mot de passe.',error?'err':'ok')};
+$('fNew').onsubmit=async ev=>{ev.preventDefault();const {error}=await S.sb.auth.updateUser({password:$('np').value});if(error)return msg(error.message,'err');history.replaceState(null,'',location.pathname);enter().catch(fail)};
+
+S.sb.auth.onAuthStateChange(ev=>{if(ev==='PASSWORD_RECOVERY'){show('fNew');msg('')}});
+(async()=>{if(/type=(recovery|invite)/.test(location.hash)){show('fNew');return}
+ const {data}=await S.sb.auth.getSession();if(data&&data.session)enter().catch(fail);else show('fLogin')})();
+})();
+</script></body></html>

@@ -10,6 +10,8 @@
   // Collections dont les éléments sont des listes d'objets (une ligne par élément).
   const LISTS = ['equipe','clients','sessions','deals','rdv','opcoInv','comInv','factures','conf','audits','aktoFac',
     'financements','prep','imports','comLog','aud','reclam','log','suiviItems'];
+  // Collections « dictionnaire » (une ligne par clé) : toujours présentes, même vides.
+  const MAPS = ['links','dos','comPaid','comVal','stAt','opcoOk','opcoIgn','opVal','done','cities','rules','tasks','opcoDos','opRev','aktoOk'];
   const isObj = x => x && typeof x === 'object' && !Array.isArray(x);
   const J = x => JSON.stringify(x);
 
@@ -81,6 +83,7 @@
       }
     });
     LISTS.forEach(c => { if (!db[c]) db[c] = []; });
+    MAPS.forEach(c => { if (!db[c]) db[c] = {}; });
     return db;
   }
 
