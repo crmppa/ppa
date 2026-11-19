@@ -255,9 +255,37 @@
     var A = buildAdapter(S.db, meId);
     // persistance : un enregistrement de dossier par entreprise, via la synchro
     A.save = function () { try { S.save && S.save(); } catch (e) {} };
+    function freshDossier() {
+      return { mode: 'akto', has: {}, sal: [], ak: {}, dates: ['', ''], audit: '', valCom: false, ctrF: false, doc: {}, valForm: false, ctl: false, depot: false, accord: false, fact: 0, paye: false, rem: {} };
+    }
+    // ---- pipeline facturation AKTO à partir des factures/dossiers réels ----
+    A.fin = function () {
+      var inv = S.db.opcoInv || [], links = S.db.links || {}, clients = S.db.clients || [];
+      var cliName = function (dossier) { var id = links[dossier]; var c = clients.filter(function (x) { return x.id === id; })[0]; return c ? c.nom : null; };
+      var paid = function (o) { return !!o.paye || /pay|régl|sold/i.test(String(o.etat || '')); };
+      var sum = function (a) { return a.reduce(function (s, o) { return s + (+o.ht || 0); }, 0); };
+      var enc = inv.filter(paid), rejete = inv.filter(function (o) { return /rejet|refus/i.test(o.etat) && !inv.some(function (q) { return q.dossier === o.dossier && paid(q); }); });
+      var transmis = inv.filter(function (o) { return !paid(o) && /transmis|analyse/i.test(o.etat); });
+      var pieces = inv.filter(function (o) { return /pièces|pieces/i.test(o.etat) && !paid(o); });
+      var kpis = { encaisse: sum(enc), aEncaisser: sum(transmis), bloque: sum(pieces), rejete: sum(rejete), nbPaye: enc.length };
+      // dossiers accordés sans facture émise -> à facturer
+      var dos = S.db.opcoDos || {};
+      var aFacturer = Object.keys(dos).map(function (k) { return dos[k]; }).filter(function (x) { return /accord/i.test(x.etat) && !inv.some(function (o) { return o.dossier === x.num; }); });
+      kpis.aFacturer = aFacturer.reduce(function (s, x) { return s + (+x.fac || +x.eng || +x.dem || 0); }, 0);
+      var invRow = function (o) { return [(cliName(o.dossier) || o.rs || '—') + ' · ' + (o.dossier || o.num), o.opco + (o.recu ? ' · reçue le ' + o.recu.split('-').reverse().join('/') : ''), Math.round(o.ht) + ' €', o]; };
+      var groups = [
+        { key: 'afac', label: 'À facturer à l’OPCO', color: '#56702A', rows: aFacturer.map(function (x) { return [(cliName(x.num) || x.rs || '—') + ' · ' + x.num, 'Dossier accordé · ' + (x.titre || 'formation'), Math.round(+x.fac || +x.eng || +x.dem || 0) + ' €', x]; }) },
+        { key: 'att', label: 'À encaisser · transmis à l’OPCO', color: '#8C2F4B', rows: transmis.map(invRow) },
+        { key: 'blo', label: 'Pièces réclamées par l’OPCO', color: '#B42828', rows: pieces.map(invRow) },
+        { key: 'ref', label: 'Rejetés · à corriger', color: '#6B5B5B', rows: rejete.map(invRow) },
+        { key: 'pay', label: 'Payés', color: '#2F6B3F', rows: enc.slice().sort(function (a, b) { return String(b.paye || '').localeCompare(String(a.paye || '')); }).slice(0, 40).map(invRow) }
+      ].filter(function (g) { return g.rows.length; });
+      return { kpis: kpis, groups: groups };
+    };
     A.getDossier = function (id) {
       S.db.dossiers = S.db.dossiers || {};
-      return S.db.dossiers[id] || null;
+      if (!S.db.dossiers[id]) S.db.dossiers[id] = freshDossier();
+      return S.db.dossiers[id];
     };
     A.setDossier = function (id, obj) {
       S.db.dossiers = S.db.dossiers || {};

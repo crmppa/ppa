@@ -18,6 +18,8 @@ docsjs_path = _os.path.join(_dir, 'ppa-docs.js')
 docs = open(docsjs_path, encoding='utf-8').read() if _os.path.exists(docsjs_path) else ''
 tpljs_path = _os.path.join(_dir, 'ppa-tpl.js')
 tpl = open(tpljs_path, encoding='utf-8').read() if _os.path.exists(tpljs_path) else ''
+importjs_path = _os.path.join(_dir, 'ppa-import.js')
+imp = open(importjs_path, encoding='utf-8').read() if _os.path.exists(importjs_path) else ''
 n = 0
 
 def R(a, b, cnt=1):
@@ -34,6 +36,8 @@ if tpl:
     inline += '<script>\n/* ---- modèles Word (inline, sauté par l\'obfuscateur) ---- */\n' + tpl + '\n</script>\n'
 if docs:
     inline += '<script>\n/* PPA-OBF-BASE ---- usine à documents (inline) ---- */\n' + docs + '\n</script>\n'
+if imp:
+    inline += '<script>\n/* PPA-OBF-BASE ---- import AKTO (inline) ---- */\n' + imp + '\n</script>\n'
 R(anchor, inline + anchor)
 
 # 2. déclarations réassignables (const -> let)
