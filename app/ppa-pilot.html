@@ -533,7 +533,7 @@ function drawSide(){
  NAV.map(([g,items])=>{const L=items.filter(x=>ok(x[0]));if(!L.length)return '';
   if(g==='flow')return `<div class="flow"><div class="flowlab">Parcours client</div>${L.map(it=>`<div class="fstep">${item(it)}</div>`).join('')}</div>`;
   return `<div class="ngroup">${L.map(item).join('')}</div>`}).join('')+
- `<div class="me"><span class="av">${me.ini}</span><div class="grow"><b>${me.nom}</b><small>${me.lab}</small></div><a class="gearb" href="#parametres" aria-label="Paramètres" ${route==='parametres'?'aria-current="page"':''}>${ic('gear')}</a></div>`;
+ `<div class="me"><span class="av">${me.ini}</span><div class="grow"><b>${me.nom}</b><small>${me.lab}</small></div>${role==='direction'?`<a class="gearb" href="#parametres" aria-label="Paramètres" ${route==='parametres'?'aria-current="page"':''}>${ic('gear')}</a>`:''}</div>`;
 }
 function go(r){location.hash=r}
 window.addEventListener('hashchange',()=>{route=location.hash.slice(1)||'aujourdhui';render();window.scrollTo(0,0)});
@@ -544,7 +544,7 @@ document.addEventListener('keydown',e=>{if(e.key==='/'&&document.activeElement.t
 document.getElementById('q').addEventListener('input',e=>{ui.entQ=e.target.value;if(route!=='entreprises')go('entreprises');else render()});
 
 const V={};
-function render(){drawSide();topBtn();const k=route.startsWith('fiche')?'fiche':route;(V[k]||V.aujourdhui)();}
+function render(){if(route==='parametres'&&role!=='direction'){go('aujourdhui');return;}drawSide();topBtn();const k=route.startsWith('fiche')?'fiche':route;(V[k]||V.aujourdhui)();}
 const $v=()=>document.getElementById('view');
 const head=(t,p,act)=>`<div class="vh"><div><h1>${t}</h1>${p?`<p>${p}</p>`:''}</div><span class="sp"></span>${act||''}</div>`;
 const who=c=>c?`<span class="who"><span class="av">${c}</span>${esc(TEAM[c])}</span>`:'<span style="color:var(--mut)">Non attribué</span>';
@@ -1201,7 +1201,7 @@ new MutationObserver(()=>{lsInject();cardLabels()}).observe(document.getElementB
 cardLabels();
 /* menu selon le rôle (démonstration) */
 document.body.classList.add('nv-light');
-(function(){const set=v=>{role=v;try{localStorage.setItem('ppa-role',v)}catch(e){};document.querySelectorAll('[data-rl]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.rl===v)));if(!ROLES[v].v.includes(route.startsWith('fiche')?'entreprises':route)&&route!=='parametres')go('aujourdhui');else render()};
+(function(){const set=v=>{role=v;try{localStorage.setItem('ppa-role',v)}catch(e){};document.querySelectorAll('[data-rl]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.rl===v)));if(!ROLES[v].v.includes(route.startsWith('fiche')?'entreprises':route)&&!(route==='parametres'&&v==='direction'))go('aujourdhui');else render()};
  document.querySelectorAll('[data-rl]').forEach(b=>b.onclick=()=>set(b.dataset.rl));document.querySelectorAll('[data-rl]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.rl===role)))})();
 render();
 </script>
