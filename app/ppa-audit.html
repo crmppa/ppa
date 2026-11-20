@@ -261,7 +261,6 @@ html.pu #ppaGate{display:none}
 
 </div>
 
-<!-- __PDFLIB__ -->
 <!-- __AUDIT_DATA__ -->
 
 <script>/* PPA-OBF-BASE */
@@ -447,6 +446,11 @@ html.pu #ppaGate{display:none}
  }
 
  /* ---------- PDF ---------- */
+ function loadScript(src){return new Promise(function(res,rej){var s=document.createElement('script');s.src=src;s.onload=res;s.onerror=function(){rej(new Error(src));};document.head.appendChild(s);});}
+ function ensurePdfLib(){if(window.PDFLib)return Promise.resolve();
+  return loadScript('lib/pdf-lib-1.17.1.min.js')
+   .catch(function(){return loadScript('https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js');})
+   .then(function(){if(!window.PDFLib)throw new Error('pdf-lib indisponible');});}
  document.getElementById('goPdf').onclick=function(){genPdf();};
  function san(s){return String(s==null?'':s).replace(/[’‘]/g,"'").replace(/[“”]/g,'"').replace(/[–—]/g,'-').replace(/…/g,'...').replace(/·/g,'-').replace(/œ/g,'oe').replace(/Œ/g,'OE').replace(/[^\x20-\xFF]/g,'');}
  function wrapTxt(font,txt,size,max){
@@ -459,6 +463,7 @@ html.pu #ppaGate{display:none}
  async function genPdf(){
   var btn=document.getElementById('goPdf');var old=btn.innerHTML;btn.innerHTML='Génération…';btn.disabled=true;
   try{
+   await ensurePdfLib();
    var PDFLib=window.PDFLib;var doc=await PDFLib.PDFDocument.create();
    var F=await doc.embedFont(PDFLib.StandardFonts.Helvetica);
    var FB=await doc.embedFont(PDFLib.StandardFonts.HelveticaBold);

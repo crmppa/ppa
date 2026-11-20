@@ -30,9 +30,8 @@ html=html.replace(/<script>([\s\S]*?)<\/script>/g,(m,c)=>{
  catch(e){console.error('obf',e.message);return m;}
 });
 
-// 3) inline pdf-lib (après obfuscation, pour ne pas la réécrire)
-const pdflib=fs.readFileSync('lib/pdf-lib-1.17.1.min.js','utf8');
-html=html.replace('<!-- __PDFLIB__ -->','<script>'+pdflib+'<\/script>');
+// 3) pdf-lib n'est PAS inliné : chargé à la demande (clic « Générer le PDF »)
+//    depuis lib/pdf-lib-1.17.1.min.js (même origine) -> page légère, gate instantané
 
 fs.writeFileSync(OUT,html);
 console.log('OK',OUT,'| scripts obfusqués:',done,'| données b64:',b64.length,'| taille:',html.length);
