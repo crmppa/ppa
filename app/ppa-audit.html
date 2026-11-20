@@ -92,19 +92,21 @@ html.pu #ppaGate{display:none}
 
 /* ---------- point card ---------- */
 .pt{background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:var(--sh);margin:12px 0;overflow:hidden;transition:border-color .2s}
-.pt.ok{border-color:#BDE6CD}.pt.ko{border-color:#EAC9A6}
+.pt.ok{border-color:#BDE6CD}.pt.ko{border-color:#EAC9A6}.pt.na{border-color:var(--line);opacity:.66}
 .pt .q{display:flex;gap:12px;padding:15px 16px}
 .pt .qi{width:26px;height:26px;min-width:26px;border-radius:8px;background:#F2F5FA;color:var(--mut);display:flex;align-items:center;justify-content:center;font:800 12px system-ui;margin-top:1px}
 .pt.ok .qi{background:var(--okbg);color:var(--ok)}
+.pt.na .qi{background:#EEF1F6;color:#8A93A6}
 .pt .qt{flex:1}
 .pt .qt .lvtag{display:inline-block;font:800 9.5px system-ui;letter-spacing:.5px;padding:2px 7px;border-radius:5px;color:#fff;margin-bottom:6px;vertical-align:middle}
 .pt .qt .txt{font-size:14.5px;line-height:1.45;color:var(--ink)}
-.choice{display:flex;gap:8px;padding:0 16px 15px}
-.choice button{flex:1;padding:11px;border:1.4px solid var(--line);border-radius:10px;background:#fff;font:700 13.5px system-ui;color:var(--mut);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px}
-.choice button svg{width:16px;height:16px;fill:none;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+.choice{display:flex;gap:7px;padding:0 16px 15px}
+.choice button{flex:1;padding:11px 6px;border:1.4px solid var(--line);border-radius:10px;background:#fff;font:700 13px system-ui;color:var(--mut);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;white-space:nowrap}
+.choice button svg{width:15px;height:15px;min-width:15px;fill:none;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
 .choice .cok.sel{background:var(--okbg);border-color:var(--ok);color:var(--ok)}
 .choice .cko.sel{background:#FBEDE2;border-color:var(--I);color:var(--C)}
-.choice .cok svg{stroke:var(--ok)}.choice .cko svg{stroke:var(--C)}
+.choice .cna.sel{background:#EEF1F6;border-color:#AEB7C6;color:#5A6578}
+.choice .cok svg{stroke:var(--ok)}.choice .cko svg{stroke:var(--C)}.choice .cna svg{stroke:#8A93A6}
 /* ecart detail */
 .detail{border-top:1px dashed var(--line);padding:14px 16px;background:#FCFAF7;display:none}
 .pt.ko .detail{display:block}
@@ -162,6 +164,10 @@ html.pu #ppaGate{display:none}
  .lvcards{grid-template-columns:1fr 1fr 1fr;gap:7px}
  .lvcards .lc{padding:11px 7px}
  .row2{flex-direction:column;gap:0}
+ .choice{gap:5px;padding:0 12px 14px}
+ .choice button{font-size:11.5px;padding:10px 3px;gap:4px}
+ .choice button svg{width:13px;height:13px;min-width:13px}
+ .pt .q{padding:14px 12px;gap:10px}
  .scard .big{font-size:44px}
  .find img{width:44px;height:44px;flex-basis:44px}
 }
@@ -288,10 +294,12 @@ html.pu #ppaGate{display:none}
 
  /* ---------- scoring ---------- */
  function stats(){
-  var evald=0,ok=0,c={C:0,I:0,A:0};
-  P.forEach(function(p){var s=state[p[0]];if(!s)return;evald++;if(s.v==='ok')ok++;else{c[s.lv||p[3]]++;}});
+  var evald=0,ok=0,na=0,answered=0,c={C:0,I:0,A:0};
+  P.forEach(function(p){var s=state[p[0]];if(!s||!s.v)return;answered++;
+   if(s.v==='na'){na++;return;}
+   evald++;if(s.v==='ok')ok++;else{c[s.lv||p[3]]++;}});
   var pct=evald?Math.round(ok/evald*100):0;
-  return {evald:evald,ok:ok,ko:evald-ok,pct:pct,c:c,total:P.length};
+  return {evald:evald,ok:ok,ko:evald-ok,na:na,answered:answered,pct:pct,c:c,total:P.length};
 }
  function ring(el,pct){
   var col=pct>=90?'#1F8A4C':pct>=75?'#8A7A18':pct>=50?'#C4601A':'#B01E1E';
@@ -303,14 +311,14 @@ html.pu #ppaGate{display:none}
   var s=stats();
   document.getElementById('tbScore').textContent=s.evald?s.pct+'%':'—';
   ring(document.getElementById('tbRing'),s.pct);
-  document.getElementById('tbProg').style.width=Math.round(s.evald/s.total*100)+'%';
+  document.getElementById('tbProg').style.width=Math.round(s.answered/s.total*100)+'%';
  }
 
  /* ---------- render zone ---------- */
  function lvtag(lv){return '<span class="lvtag" style="background:'+LVC[lv]+'">'+LV[lv][0]+'</span>';}
  function renderTabs(){
   var h='';for(var i=0;i<Z.length;i++){var z=Z[i];var ps=ptsOf(z[0]);
-   var done=ps.every(function(p){return state[p[0]];});
+   var done=ps.every(function(p){return state[p[0]]&&state[p[0]].v;});
    h+='<button data-i="'+i+'" class="'+(i===zi?'on':'')+(done?' done':'')+'">'+
       '<span class="c">'+(done?'✓':(i+1))+'</span>'+esc(z[1].split(/[·,]/)[0].trim())+'</button>';}
   var tb=document.getElementById('zTabs');tb.innerHTML=h;
@@ -331,6 +339,7 @@ html.pu #ppaGate{display:none}
       '<div class="choice">'+
         '<button class="cok'+(s.v==='ok'?' sel':'')+'" data-v="ok"><svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>Conforme</button>'+
         '<button class="cko'+(s.v==='ko'?' sel':'')+'" data-v="ko"><svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg>À corriger</button>'+
+        '<button class="cna'+(s.v==='na'?' sel':'')+'" data-v="na"><svg viewBox="0 0 24 24"><path d="M5 12h14"/></svg>Non concerné</button>'+
       '</div>'+
       '<div class="detail">'+
         '<div class="seg"><div class="lab">Constat</div><div class="val">'+esc(p[5])+'</div></div>'+
@@ -357,9 +366,10 @@ html.pu #ppaGate{display:none}
    card.querySelectorAll('.choice button').forEach(function(b){b.onclick=function(){
      var v=b.dataset.v;var s=state[id]||(state[id]={});
      s.v=v;if(v==='ko'&&!s.lv)s.lv=p[3];
-     card.className='pt '+(v==='ok'?'ok':'ko');
+     card.className='pt '+(v==='ok'?'ok':v==='ko'?'ko':'na');
      card.querySelector('.cok').classList.toggle('sel',v==='ok');
      card.querySelector('.cko').classList.toggle('sel',v==='ko');
+     card.querySelector('.cna').classList.toggle('sel',v==='na');
      renderTabs();refreshScore();
    };});
    card.querySelectorAll('.lvpick button').forEach(function(b){b.onclick=function(){
@@ -477,7 +487,7 @@ html.pu #ppaGate{display:none}
    var d=META.date?META.date.split('-').reverse().join('/'):new Date().toLocaleDateString('fr-FR');
    kv('Date de la visite',d);
    kv('Auditeur',META.aud||'—');
-   kv('Points controles',s.evald+' / '+s.total);
+   kv('Points evalues',s.evald+' / '+s.total+(s.na?'   ('+s.na+' non concernes)':''));
    y-=18;
    // score block
    var bx=M,bw=W-2*M,bh=120;page.drawRectangle({x:bx,y:y-bh,width:bw,height:bh,color:hx('#F4F6FA'),borderColor:line,borderWidth:1,opacity:1});
