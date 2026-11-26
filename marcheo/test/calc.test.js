@@ -8,7 +8,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
-const M = require('../calc.js');
+const M = require('../js/calc.js');
 
 /* Moteur d'origine, extrait tel quel du fichier de référence */
 function moteurOrigine() {

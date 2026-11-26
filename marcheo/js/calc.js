@@ -1,6 +1,6 @@
 /* Moteur de calcul · opération de marchand de biens
    Module pur : aucune dépendance à l'interface, au stockage ou au navigateur.
-   Reprend à l'identique les règles du simulateur d'origine (mdb/reference/simulateur-marchand-de-biens.html) :
+   Reprend à l'identique les règles du simulateur d'origine (marcheo/reference/simulateur-marchand-de-biens.html) :
    notaire, travaux, compute, limits, tableaux W, X, TYPES, M1, M2.
    Seule évolution : les prix unitaires (« repères ») sont lus dans un tableau REF modifiable,
    dont les valeurs par défaut sont celles du simulateur. Le calcul est inchangé tant que REF n'est pas modifié.
@@ -138,7 +138,7 @@
     terrain: { ql: 'Prix au m² du terrain à bâtir (€)', n: 'Terrain à diviser', sl: 'Surface du terrain (m²)', pl: 'Lots à vendre', note: 'Division parcellaire. Le prix de revente est le total des lots.', p: { surf: 1000, pieces: 2, achat: 70000, vente: 120000, duree: 12, niveau: 'c', pm2: 120 } }
   };
   const NIVEAUX = { r: 'Rafraîchissement', c: 'Rénovation complète', l: 'Rénovation lourde' };
-  const GAMMES = { '0.8': 'Économique', '1': 'Standard', '1.25': 'Haut de gamme' };
+  const GAMMES = { '0.8': 'Éco, piloté en direct', '1': 'Standard', '1.25': 'Soigné' };
 
   /* ---------- État d'une simulation ---------- */
   const DEF = {
