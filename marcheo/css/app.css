@@ -680,3 +680,39 @@ a.prochaine-etape span { color: var(--c); font-weight: 700; font-size: .9rem; }
 .simulation .grille-champs.alignee { grid-template-columns: 1fr 1fr; }
 .choix-type { grid-template-columns: repeat(3, 1fr); }
 @media (max-width: 480px) { .choix-type { grid-template-columns: 1fr 1fr; } }
+
+/* ================= Finition vert anglais métallisé =================
+   Peinture de carrosserie : base vert profond, reflet clair en diagonale, paillettes fines.
+   Réservée aux surfaces « tôle » : barre latérale, en-têtes mobiles, boutons principaux, pastilles actives.
+   Le contenu (cartes, tableaux) reste ivoire mat pour la lisibilité. */
+:root {
+  --metal-base: #0b2418;
+  --metal: linear-gradient(118deg, #07190f 0%, #0d2f1f 18%, #1d5a3b 34%, #3f8a63 41%, #1a5236 48%, #0c2c1c 64%, #123d28 82%, #081c12 100%);
+  --metal-vertical: linear-gradient(180deg, #164a31 0%, #0d2f1f 22%, #0a2518 48%, #12402a 70%, #07190f 100%);
+  --metal-bouton: linear-gradient(180deg, #2f7a54 0%, #145a38 38%, #0c4429 52%, #0f4a30 78%, #1b5f3e 100%);
+  --metal-bouton-survol: linear-gradient(180deg, #3d9166 0%, #1a6943 38%, #0f4d2f 52%, #135537 78%, #237049 100%);
+  --metal-paillettes: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='p'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.1' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.95 0 0 0 0 0.92 0 0 0 0 0.80 0 0 0 10 -6.3'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23p)'/%3E%3C/svg%3E");
+}
+.nav-laterale, .visite-tete, .vacc-tete, .page-connexion {
+  background-color: var(--metal-base);
+  background-image: var(--metal-paillettes),
+    linear-gradient(100deg, transparent 30%, rgba(190, 235, 205, 0.10) 44%, rgba(255, 255, 255, 0.16) 47%, rgba(190, 235, 205, 0.08) 51%, transparent 64%),
+    var(--metal-vertical);
+  background-size: 160px 160px, 100% 100%, 100% 100%;
+  background-blend-mode: soft-light, screen, normal;
+}
+.visite-tete, .vacc-tete { background-image: var(--metal-paillettes), var(--metal); background-size: 160px 160px, 100% 100%; box-shadow: inset 0 -1px 0 rgba(201, 171, 116, 0.55); }
+.bouton-principal, .bouton-vert, .etapes button.courante, .segments button[aria-pressed="true"], .barre-haut .pastille-module, .nav-lien.actif .pastille-module {
+  background-color: var(--accent); background-image: var(--metal-paillettes), var(--metal-bouton);
+  background-size: 120px 120px, 100% 100%; background-blend-mode: soft-light, normal;
+  color: var(--accent-texte); border-color: #0a3320;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.28), inset 0 -1px 0 rgba(0, 0, 0, 0.35), 0 1px 2px rgba(7, 25, 15, 0.35);
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.25);
+}
+.nav-lien.actif .pastille-module, .barre-haut .pastille-module { color: var(--laiton-clair); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25), 0 0 0 1px var(--laiton-clair); }
+.bouton-principal:hover, .bouton-vert:hover { background-image: var(--metal-paillettes), var(--metal-bouton-survol); border-color: var(--laiton); filter: none; }
+.bouton-principal, .bouton-vert { position: relative; overflow: hidden; }
+.bouton-principal::after, .bouton-vert::after { content: ""; position: absolute; inset: 0; background: linear-gradient(105deg, transparent 35%, rgba(255, 255, 255, 0.32) 48%, transparent 60%); transform: translateX(-120%); transition: transform .7s ease; pointer-events: none; }
+.bouton-principal:hover::after, .bouton-vert:hover::after { transform: translateX(120%); }
+@media (prefers-reduced-motion: reduce) { .bouton-principal::after, .bouton-vert::after { display: none; } }
+[data-theme="sombre"] .bouton-principal, [data-theme="sombre"] .etapes button.courante, [data-theme="sombre"] .segments button[aria-pressed="true"] { color: #f6f0e2; }
